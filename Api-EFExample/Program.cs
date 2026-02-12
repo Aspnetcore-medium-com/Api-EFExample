@@ -3,19 +3,22 @@ using Core.Validator;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using AutoMapper;
+using Infra;
+using Services.Seeders;
+using Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddAutoMapper(typeof(PersonMappingProfile));
 builder.Services.AddValidatorsFromAssemblyContaining<PersonValidator>();
-
+builder.Services.AddInfra(builder.Configuration);
+builder.Services.AddCore();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
+await DbSeeder.Seed(app.Services);
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

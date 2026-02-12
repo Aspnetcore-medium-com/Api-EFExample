@@ -1,4 +1,6 @@
 ﻿using Entities;
+using Microsoft.EntityFrameworkCore;
+
 //using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Services.Entities;
@@ -33,38 +35,40 @@ namespace Services.Seeders
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
-            //using var scope = serviceProvider.CreateScope();
-            //var context = scope.ServiceProvider.GetRequiredService<PersonDBContext>();
-            //await context.Database.MigrateAsync();
-            //if (context.Database != null) {
-            //    if (!await context.Countries.AnyAsync()) {
-            //        var jsonPath = Path.Combine(
-            //             Directory.GetCurrentDirectory(),
-            //             "jsons",
-            //             "countries.json");
-            //        var jsonData = await File.ReadAllTextAsync(jsonPath);
-            //        var countries = JsonSerializer.Deserialize<List<Country>>(jsonData);
-            //        if (countries?.Any() == true)
-            //        {
-            //            await context.Countries.AddRangeAsync(countries);
-            //            await context.SaveChangesAsync();
-            //        }
-                    
-            //    }
-            //    if (!await context.Persons.AnyAsync())
-            //    {
-            //        var jsonPath = Path.Combine(Directory.GetCurrentDirectory(),
-            //                    "jsons",
-            //                    "persons.json");
-            //        var jsonData = await File.ReadAllTextAsync($"{jsonPath}", Encoding.UTF8);
-            //        var Persons = JsonSerializer.Deserialize<List<Person>>(jsonData);
-            //        if(Persons?.Any() == true)
-            //        {
-            //            await context.Persons.AddRangeAsync(Persons);
-            //            await context.SaveChangesAsync();
-            //        }
-            //    }
-            //}
+            using var scope = serviceProvider.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<PersonDBContext>();
+            await context.Database.MigrateAsync();
+            if (context.Database != null)
+            {
+                if (!await context.Countries.AnyAsync())
+                {
+                    var jsonPath = Path.Combine(
+                         Directory.GetCurrentDirectory(),
+                         "seeders",
+                         "countries.json");
+                    var jsonData = await File.ReadAllTextAsync(jsonPath);
+                    var countries = JsonSerializer.Deserialize<List<Country>>(jsonData);
+                    if (countries?.Any() == true)
+                    {
+                        await context.Countries.AddRangeAsync(countries);
+                        await context.SaveChangesAsync();
+                    }
+
+                }
+                if (!await context.Persons.AnyAsync())
+                {
+                    var jsonPath = Path.Combine(Directory.GetCurrentDirectory(),
+                                "seeders",
+                                "persons.json");
+                    var jsonData = await File.ReadAllTextAsync($"{jsonPath}", Encoding.UTF8);
+                    var Persons = JsonSerializer.Deserialize<List<Person>>(jsonData);
+                    if (Persons?.Any() == true)
+                    {
+                        await context.Persons.AddRangeAsync(Persons);
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
 
         }
 
