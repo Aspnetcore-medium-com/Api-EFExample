@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Core.Domain.RepositoryContracts;
 using Entities;
 using ServiceContracts;
 using ServiceContracts.DTO;
@@ -13,11 +14,11 @@ namespace Services
     /// data models and response objects.</remarks>
     public class CountryService : ICountryService
     {
-        private readonly List<Country> _countries ;
+        private readonly ICountryRepository _countryRepository;
         private readonly IMapper _mapper;
 
-        public CountryService(IMapper mapper) { 
-            _countries = new List<Country>();
+        public CountryService(IMapper mapper,ICountryRepository countryRepository) { 
+            _countryRepository = countryRepository;
             _mapper = mapper;
         }
 
@@ -35,14 +36,14 @@ namespace Services
                 throw new ArgumentException("Country name cannot be null or empty.", nameof(countryAddRequest.CountryName));
             }
 
-            if ( _countries.Any(country => country.CountryName.Equals(countryAddRequest.CountryName,StringComparison.OrdinalIgnoreCase)))
+            if ( _countryRepository.GetAllCountries().Any(country => country.CountryName.Equals(countryAddRequest.CountryName,StringComparison.OrdinalIgnoreCase)))
             {
                 throw new ArgumentException(message: "Country with the same name already exists.",paramName: nameof(countryAddRequest.CountryName));
             }
             Country country = _mapper.Map<Country>(countryAddRequest);
 
             country.CountryId = Guid.NewGuid();
-            _countries.Add(country);
+            await _countryRepository.AddCountry(country);
             CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
             return await Task.FromResult(countryResponse);
 
@@ -50,12 +51,12 @@ namespace Services
 
         public Task<List<CountryResponse>> GetAllCountries()
         {
-            return Task.FromResult( _countries.Select(country => _mapper.Map<CountryResponse>(country)).ToList());
+            return Task.FromResult(_countryRepository.GetAllCountries().Select(country => _mapper.Map<CountryResponse>(country)).ToList());
         }
 
         public Task<CountryResponse> GetCountryById(Guid guid)
         {
-           Country? country = _countries.FirstOrDefault( c => c.CountryId == guid);
+           Country? country = _countryRepository.GetCountry(guid);
            if (country == null)
            {
                 throw new ArgumentException(message: "Country with the specified ID does not exist.", paramName: nameof(guid));

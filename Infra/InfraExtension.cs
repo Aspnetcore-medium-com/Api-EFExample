@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Core.Domain.RepositoryContracts;
+using Infra.Repositories;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Services;
@@ -15,6 +17,8 @@ namespace Infra
         public static void AddInfra(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<PersonDBContext>(options => options.UseSqlServer(configuration.GetConnectionString("Default")));
+            services.AddTransient<ICountryRepository,CountryRepositories>();
+            services.AddTransient<IPersonRepository, PersonRepositories>();
         }
     }
 }

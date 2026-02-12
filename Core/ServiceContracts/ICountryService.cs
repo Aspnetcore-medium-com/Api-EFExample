@@ -35,5 +35,7 @@ namespace ServiceContracts
         /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="CountryResponse"/>
         /// with details of the country if found; otherwise, <c>null</c>.</returns>
         public Task<CountryResponse> GetCountryById(Guid guid);
+
+        
     }
 }

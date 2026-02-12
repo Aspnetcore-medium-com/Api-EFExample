@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Core.Domain.RepositoryContracts;
 using FluentValidation;
 using ServiceContracts;
 using ServiceContracts.DTO;
@@ -15,16 +16,16 @@ namespace Services
     public class PersonService : IPersonService
     {
         private readonly IMapper _mapper;
-        private readonly List<Person> _people;
         private readonly IValidator<PersonAddRequest> _personAddRequestValidator;
+        private readonly IPersonRepository _personRepository;
 
-        public PersonService(IMapper mapper, IValidator<PersonAddRequest> validator)
+        public PersonService(IMapper mapper, IValidator<PersonAddRequest> validator, IPersonRepository personRepository)
         {
             _mapper = mapper;
             _personAddRequestValidator = validator;
-            _people = new List<Person>();
+            _personRepository = personRepository;
         }
-        public Task<PersonResponse> AddPerson(PersonAddRequest? personAddRequest)
+        public async Task<PersonResponse> AddPerson(PersonAddRequest? personAddRequest)
         {
             if (personAddRequest == null)
             {
@@ -40,19 +41,19 @@ namespace Services
             Person person = _mapper.Map<Person>(personAddRequest);
 
             person.PersonId = Guid.NewGuid();
-            _people.Add(person);
+            await _personRepository.AddPerson(person);
             PersonResponse personResponse = _mapper.Map<PersonResponse>(person);
-            return Task.FromResult(personResponse);
+            return personResponse;
         }
 
         public Task<PersonResponse> DeletePerson(Guid personId)
         {
-            Person? person = _people.FirstOrDefault(p => p.PersonId == personId);
+            Person? person = _personRepository.GetPersonById(personId);
             if (person == null)
             {
                 throw new KeyNotFoundException($"Person with ID {personId} not found.");
             }
-            _people.Remove(person);
+            _personRepository.DeletePersonAsync(person.PersonId);
             PersonResponse personResponse = _mapper.Map<PersonResponse>(person);
             return Task.FromResult(personResponse);
 
@@ -60,13 +61,13 @@ namespace Services
 
         public Task<List<PersonResponse>> GetAllPersons()
         {
-            List<PersonResponse> personResponses = _people.Select(p => _mapper.Map<PersonResponse>(p)).ToList();
+            List<PersonResponse> personResponses = _personRepository.GetAllPersons().Select(p => _mapper.Map<PersonResponse>(p)).ToList();
             return Task.FromResult(personResponses);
         }
 
         public Task<PersonResponse> GetPersonById(Guid personId)
         {
-            var person = _people.FirstOrDefault(p => p.PersonId == personId);
+            var person = _personRepository.GetPersonById(personId);
             if (person == null)
             {
                 throw new KeyNotFoundException($"Person with ID {personId} not found.");
@@ -77,7 +78,7 @@ namespace Services
 
         public Task<List<PersonResponse>> GetPersonsBy(string searchString, string columnName)
         {
-            List<Person> result = _people.Where(p =>
+            List<Person> result = _personRepository.GetAllPersons().Where(p =>
                 (columnName.Equals("PersonName", StringComparison.OrdinalIgnoreCase) && p.PersonName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) ||
                 (columnName.Equals("Email", StringComparison.OrdinalIgnoreCase) && p.Email != null && p.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase)) ||
                 (columnName.Equals("Address", StringComparison.OrdinalIgnoreCase) && p.Address != null && p.Address.Contains(searchString, StringComparison.OrdinalIgnoreCase)) ||
@@ -91,17 +92,19 @@ namespace Services
 
         public Task<List<PersonResponse>> GetPersonsWithSorting(string columnName, SortOptions sortOptions)
         {
+            var persons = _personRepository.GetAllPersons();
             if (string.IsNullOrWhiteSpace(columnName))
             {
-                return Task.FromResult(_people.Select(p => _mapper.Map<PersonResponse>(p)).ToList());
+                return Task.FromResult(persons.Select(p => _mapper.Map<PersonResponse>(p)).ToList());
             }
+
             var sortedPeople = columnName.ToLower() switch
             {
-                "personname" => sortOptions == SortOptions.Ascending ? _people.OrderBy(p => p.PersonName) : _people.OrderByDescending(p => p.PersonName),
-                "email" => sortOptions == SortOptions.Ascending ? _people.OrderBy(p => p.Email) : _people.OrderByDescending(p => p.Email),
-                "address" => sortOptions == SortOptions.Ascending ? _people.OrderBy(p => p.Address) : _people.OrderByDescending(p => p.Address),
-                "dateofbirth" => sortOptions == SortOptions.Ascending ? _people.OrderBy(p => p.DateOfBirth) : _people.OrderByDescending(p => p.DateOfBirth),
-                "countryid" => sortOptions == SortOptions.Ascending ? _people.OrderBy(p => p.CountryId) : _people.OrderByDescending(p => p.CountryId),
+                "personname" => sortOptions == SortOptions.Ascending ? persons.OrderBy(p => p.PersonName) : persons.OrderByDescending(p => p.PersonName),
+                "email" => sortOptions == SortOptions.Ascending ? persons.OrderBy(p => p.Email) : persons.OrderByDescending(p => p.Email),
+                "address" => sortOptions == SortOptions.Ascending ? persons.OrderBy(p => p.Address) : persons.OrderByDescending(p => p.Address),
+                "dateofbirth" => sortOptions == SortOptions.Ascending ? persons.OrderBy(p => p.DateOfBirth) : persons.OrderByDescending(p => p.DateOfBirth),
+                "countryid" => sortOptions == SortOptions.Ascending ? persons.OrderBy(p => p.CountryId) : persons.OrderByDescending(p => p.CountryId),
                 _ => throw new ArgumentException($"Invalid column name: {columnName}")
             };
 
@@ -110,18 +113,19 @@ namespace Services
 
         public Task<PersonResponse> UpdatePerson(PersonUpdateRequest personUpdateRequest)
         {
-            var personToUpdate = _people.FirstOrDefault(p => p.PersonId == personUpdateRequest.PersonId);
+            var personToUpdate = _personRepository.GetPersonById(personUpdateRequest.PersonId);
             if (personToUpdate == null)
             {
                 throw new KeyNotFoundException($"Person with ID {nameof(personUpdateRequest.PersonId)} not found.");
             }
-            personToUpdate.PersonName = personUpdateRequest.PersonName;
-            personToUpdate.Email = personUpdateRequest.Email;
-            personToUpdate.Address = personUpdateRequest.Address;
-            personToUpdate.DateOfBirth = personUpdateRequest.DateOfBirth;
-            personToUpdate.CountryId = personUpdateRequest.CountryId;
-            personToUpdate.Gender = personUpdateRequest.Gender.ToString();
-            personToUpdate.ReceiveNewsLetters = personUpdateRequest.ReceiveNewsLetters;
+            //personToUpdate.PersonName = personUpdateRequest.PersonName;
+            //personToUpdate.Email = personUpdateRequest.Email;
+            //personToUpdate.Address = personUpdateRequest.Address;
+            //personToUpdate.DateOfBirth = personUpdateRequest.DateOfBirth;
+            //personToUpdate.CountryId = personUpdateRequest.CountryId;
+            //personToUpdate.Gender = personUpdateRequest.Gender.ToString();
+            //personToUpdate.ReceiveNewsLetters = personUpdateRequest.ReceiveNewsLetters;
+            _personRepository.UpdatePerson(personToUpdate);
 
             PersonResponse personResponse = _mapper.Map<PersonResponse>(personToUpdate);
             return Task.FromResult(personResponse);

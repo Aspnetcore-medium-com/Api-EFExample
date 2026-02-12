@@ -1,4 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using ServiceContracts;
+using Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +13,8 @@ namespace Core
     {
         public static void AddCore(this IServiceCollection services) {
             services.AddAutoMapper(cfg => { }, typeof(CoreExtension).Assembly);
+            services.AddTransient<IPersonService,PersonService>();
+            services.AddTransient<ICountryService,CountryService>();
         }
     }
 }

@@ -1,6 +1,6 @@
 @Api_EFExample_HostAddress = http://localhost:5183
 
-GET {{Api_EFExample_HostAddress}}/weatherforecast/
+GET {{Api_EFExample_HostAddress}}/api/person/
 Accept: application/json
 
 ###
