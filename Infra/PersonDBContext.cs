@@ -21,6 +21,11 @@ namespace Services
             modelBuilder.Entity<Country>().ToTable("Countries");
             modelBuilder.Entity<Person>().ToTable("Persons");
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Country>()
+                .HasIndex(c => c.CountryName)
+                .IsUnique();
+
         }
     }
 }
