@@ -17,8 +17,8 @@ namespace Infra
         public static void AddInfra(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<PersonDBContext>(options => options.UseSqlServer(configuration.GetConnectionString("Default")));
-            services.AddTransient<ICountryRepository,CountryRepositories>();
-            services.AddTransient<IPersonRepository, PersonRepositories>();
+            services.AddTransient<ICountryRepository,CountryRepository>();
+            services.AddTransient<IPersonRepository, PersonRepository>();
         }
     }
 }

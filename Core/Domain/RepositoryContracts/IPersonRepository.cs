@@ -9,35 +9,46 @@ namespace Core.Domain.RepositoryContracts
 {
     public interface IPersonRepository
     {
+       /// <summary>
+       /// Get all persons
+       /// </summary>
+       /// <param name="cancellationToken"></param>
+       /// <returns></returns>
+        public Task<IReadOnlyList<Person>> GetAllPersonsAsync(CancellationToken cancellationToken = default);
         /// <summary>
-        /// Get all person interface method
-        /// </summary>
-        /// <returns>Task<List<Person>></returns>
-        public List<Person> GetAllPersons();
-        /// <summary>
-        /// Get a person by id 
+        /// get persons by person id
         /// </summary>
         /// <param name="personId"></param>
-        /// <returns>Task<Person></returns>
-        public Person? GetPersonById(Guid personId);
-        /// <summary>
-        /// update a person
-        /// </summary>
-        /// <param name="person"></param>
-        /// <returns>Task<Person></returns>
-        public Task<Person> UpdatePerson(Person person);
-        /// <summary>
-        /// delete a person
-        /// </summary>
-        /// <param name="person"></param>
-        /// <returns>Task<Person></returns>
-        public Task<Person?> DeletePersonAsync(Guid personId);
-
-        /// <summary>
-        /// Add Person
-        /// </summary>
-        /// <param name="person"></param>
+        /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task<Person?> AddPerson(Person person);
+        public Task<Person?> GetPersonByIdAsync(Guid personId,CancellationToken cancellationToken = default);
+        /// <summary>
+        /// update person
+        /// </summary>
+        /// <param name="person"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<Person?> UpdatePersonAsync(Person person, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// Delete person
+        /// </summary>
+        /// <param name="personId"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<bool> DeletePersonAsync(Guid personId, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// add person 
+        /// </summary>
+        /// <param name="person"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<Person?> AddPersonAsync(Person person, CancellationToken cancellationToken = default);
+        /// <summary>
+        /// check the person exists
+        /// </summary>
+        /// <param name="personId"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<bool> ExistsPersonAsync(Guid personId,CancellationToken cancellationToken= default);
     }
 }

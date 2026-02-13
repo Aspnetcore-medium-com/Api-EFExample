@@ -3,18 +3,15 @@ using Entities;
 using Microsoft.EntityFrameworkCore;
 using Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Infra.Repositories
 {
-    public class CountryRepositories : ICountryRepository
+    public class CountryRepository : ICountryRepository
     {
         private readonly PersonDBContext _dbContext;
 
-        public CountryRepositories(PersonDBContext dbContext)
+        public CountryRepository(PersonDBContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -57,12 +54,11 @@ namespace Infra.Repositories
             return country;
         }
 
-        public async Task<Country?> GetCountryByNameAsync(string countryName, CancellationToken cancellation = default)
+        public async Task<Country?> GetCountryByNameAsync(string countryName, CancellationToken cancellationToken = default)
         {
-            Country? country = await _dbContext.Countries.AsNoTracking().FirstOrDefaultAsync(country => country.CountryName.ToLower() == countryName.ToLower(), cancellation);
+            Country? country = await _dbContext.Countries.AsNoTracking().FirstOrDefaultAsync(country => country.CountryName.ToLower() == countryName.ToLower(), cancellationToken);
             return country;
         }
-
         
     }
 }
