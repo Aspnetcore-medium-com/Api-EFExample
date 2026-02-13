@@ -1,41 +1,61 @@
 ﻿using ServiceContracts.DTO;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ServiceContracts
 {
     /// <summary>
-    /// Service contract for Country operations
+    /// Service contract for Country operations.
+    /// Handles business logic and DTO mapping.
     /// </summary>
     public interface ICountryService
     {
         /// <summary>
         /// Adds a new country using the specified request data.
         /// </summary>
-        /// <param name="countryAddRequest">The request containing the details of the country to add. This parameter cannot be <see langword="null"/>.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="CountryResponse"/>
-        /// with information about the added country.</returns>
-        public Task<CountryResponse> AddCountry(CountryAddRequest? countryAddRequest);
-        
-        /// <summary>
-        /// Retrieves a list of all available countries.
-        /// </summary>
-        /// <remarks>The returned list contains country information as <see cref="CountryResponse"/>
-        /// objects. The order of countries is not guaranteed.</remarks>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a list of <see
-        /// cref="CountryResponse"/> objects representing all available countries. If no countries are available, the
-        /// list will be empty.</returns>
-        public Task<List<CountryResponse>> GetAllCountries();
+        /// <param name="countryAddRequest">
+        /// The request containing the details of the country to add.
+        /// Cannot be null.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// Token to observe cancellation requests.
+        /// </param>
+        /// <returns>
+        /// A <see cref="CountryResponse"/> containing details of the added country.
+        /// </returns>
+        Task<CountryResponse> AddCountry(
+            CountryAddRequest countryAddRequest,
+            CancellationToken cancellationToken = default);
 
         /// <summary>
-        /// Retrieves country information for the specified country identifier.
+        /// Retrieves all available countries.
         /// </summary>
-        /// <remarks>This method performs an asynchronous lookup for country data using the provided
-        /// identifier. If no country matches the specified <paramref name="guid"/>, the result will be
-        /// <c>null</c>.</remarks>
-        /// <param name="guid">The unique identifier of the country to retrieve.</param>
-        /// <returns>A task that represents the asynchronous operation. The task result contains a <see cref="CountryResponse"/>
-        /// with details of the country if found; otherwise, <c>null</c>.</returns>
-        public Task<CountryResponse> GetCountryById(Guid guid);
+        /// <param name="cancellationToken">
+        /// Token to observe cancellation requests.
+        /// </param>
+        /// <returns>
+        /// A read-only list of <see cref="CountryResponse"/> objects.
+        /// Returns an empty collection if none exist.
+        /// </returns>
+        Task<IReadOnlyList<CountryResponse>> GetAllCountries(
+            CancellationToken cancellationToken = default);
 
-        
+        /// <summary>
+        /// Retrieves country information by its unique identifier.
+        /// </summary>
+        /// <param name="countryId">
+        /// The unique identifier of the country.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// Token to observe cancellation requests.
+        /// </param>
+        /// <returns>
+        /// A <see cref="CountryResponse"/> if found; otherwise, null.
+        /// </returns>
+        Task<CountryResponse?> GetCountryById(
+            Guid countryId,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -98,5 +98,7 @@ namespace Core.Domain.RepositoryContracts
         Task<bool> ExistsAsync(
             Guid countryId,
             CancellationToken cancellationToken = default);
+
+        Task<bool> ExistsByNameAsync(string countryName,CancellationToken cancellationToken = default);
     }
 }

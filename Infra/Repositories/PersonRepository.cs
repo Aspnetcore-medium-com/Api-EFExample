@@ -36,9 +36,19 @@ namespace Infra.Repositories
             return false;
         }
 
+        public async Task<bool> ExistsByIdAsync(Guid personId, CancellationToken cancellationToken = default)
+        {
+            return await _personDBContext.Persons.AsNoTracking().AnyAsync(x => x.PersonId == personId);
+        }
+
         public async Task<bool> ExistsPersonAsync(Guid personId, CancellationToken cancellationToken = default)
         {
             return await _personDBContext.Persons.AnyAsync(x => x.PersonId == personId,cancellationToken);
+        }
+
+        public async Task<bool> ExistsPersonByNameAsync(string personName, CancellationToken cancellationToken = default)
+        {
+            return await _personDBContext.Persons.AsNoTracking().AnyAsync(x => x.PersonName.ToLower() == personName.ToLower());
         }
 
         public async Task<IReadOnlyList<Person>> GetAllPersonsAsync(CancellationToken cancellationToken = default)

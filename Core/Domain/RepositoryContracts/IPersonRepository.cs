@@ -49,6 +49,14 @@ namespace Core.Domain.RepositoryContracts
         /// <param name="personId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public Task<bool> ExistsPersonAsync(Guid personId,CancellationToken cancellationToken= default);
+        public Task<bool> ExistsPersonByNameAsync(string personName,CancellationToken cancellationToken= default);
+
+        /// <summary>
+        /// exists by id 
+        /// </summary>
+        /// <param name="personId"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public Task<bool> ExistsByIdAsync(Guid personId,CancellationToken cancellationToken = default);
     }
 }

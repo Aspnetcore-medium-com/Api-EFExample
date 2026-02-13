@@ -25,7 +25,7 @@ namespace Services
             _personAddRequestValidator = validator;
             _personRepository = personRepository;
         }
-        public async Task<PersonResponse> AddPerson(PersonAddRequest? personAddRequest)
+        public async Task<PersonResponse> AddPerson(PersonAddRequest? personAddRequest,CancellationToken cancellationToken = default)
         {
             if (personAddRequest == null)
             {
@@ -41,44 +41,46 @@ namespace Services
             Person person = _mapper.Map<Person>(personAddRequest);
 
             person.PersonId = Guid.NewGuid();
-            await _personRepository.AddPerson(person);
+            await _personRepository.AddPersonAsync(person,cancellationToken);
             PersonResponse personResponse = _mapper.Map<PersonResponse>(person);
             return personResponse;
         }
 
-        public Task<PersonResponse> DeletePerson(Guid personId)
+        public async Task<bool> DeletePerson(Guid personId, CancellationToken cancellationToken = default)
         {
-            Person? person = _personRepository.GetPersonById(personId);
+            Person? person = await _personRepository.GetPersonByIdAsync(personId,cancellationToken);
             if (person == null)
             {
                 throw new KeyNotFoundException($"Person with ID {personId} not found.");
             }
-            _personRepository.DeletePersonAsync(person.PersonId);
-            PersonResponse personResponse = _mapper.Map<PersonResponse>(person);
-            return Task.FromResult(personResponse);
+            return await _personRepository.DeletePersonAsync(person.PersonId);       
 
         }
 
-        public Task<List<PersonResponse>> GetAllPersons()
+        
+
+        public async Task<IReadOnlyList<PersonResponse>> GetAllPersons(CancellationToken cancellation = default)
         {
-            List<PersonResponse> personResponses = _personRepository.GetAllPersons().Select(p => _mapper.Map<PersonResponse>(p)).ToList();
-            return Task.FromResult(personResponses);
+            var persons = await _personRepository.GetAllPersonsAsync();
+            List<PersonResponse> personResponses = persons.Select(p => _mapper.Map<PersonResponse>(p)).ToList();
+            return personResponses;
         }
 
-        public Task<PersonResponse> GetPersonById(Guid personId)
+        public async Task<PersonResponse?> GetPersonById(Guid personId, CancellationToken cancellationToken = default)
         {
-            var person = _personRepository.GetPersonById(personId);
+            var person = await _personRepository.GetPersonByIdAsync(personId,cancellationToken);
             if (person == null)
             {
                 throw new KeyNotFoundException($"Person with ID {personId} not found.");
             }
             PersonResponse personResponse = _mapper.Map<PersonResponse>(person);
-            return Task.FromResult(personResponse);
+            return personResponse;
         }
 
-        public Task<List<PersonResponse>> GetPersonsBy(string searchString, string columnName)
+        public async Task<IReadOnlyList<PersonResponse>> GetPersonsBy(string searchString, string columnName,CancellationToken cancellationToken = default)
         {
-            List<Person> result = _personRepository.GetAllPersons().Where(p =>
+            var persons = await _personRepository.GetAllPersonsAsync(cancellationToken);
+            List<Person> result = persons.Where(p =>
                 (columnName.Equals("PersonName", StringComparison.OrdinalIgnoreCase) && p.PersonName.Contains(searchString, StringComparison.OrdinalIgnoreCase)) ||
                 (columnName.Equals("Email", StringComparison.OrdinalIgnoreCase) && p.Email != null && p.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase)) ||
                 (columnName.Equals("Address", StringComparison.OrdinalIgnoreCase) && p.Address != null && p.Address.Contains(searchString, StringComparison.OrdinalIgnoreCase)) ||
@@ -87,15 +89,15 @@ namespace Services
 
             ).ToList();
             List<PersonResponse> personResponses = result.Select(p => _mapper.Map<PersonResponse>(p)).ToList();
-            return Task.FromResult(personResponses);
+            return personResponses;
         }
 
-        public Task<List<PersonResponse>> GetPersonsWithSorting(string columnName, SortOptions sortOptions)
+        public async Task<IReadOnlyList<PersonResponse>> GetPersonsWithSorting(string columnName, SortOptions sortOptions,CancellationToken cancellationToken = default)
         {
-            var persons = _personRepository.GetAllPersons();
+            var persons = await _personRepository.GetAllPersonsAsync(cancellationToken);
             if (string.IsNullOrWhiteSpace(columnName))
             {
-                return Task.FromResult(persons.Select(p => _mapper.Map<PersonResponse>(p)).ToList());
+                return persons.Select(p => _mapper.Map<PersonResponse>(p)).ToList();
             }
 
             var sortedPeople = columnName.ToLower() switch
@@ -108,12 +110,12 @@ namespace Services
                 _ => throw new ArgumentException($"Invalid column name: {columnName}")
             };
 
-            return Task.FromResult(sortedPeople.Select(p => _mapper.Map<PersonResponse>(p)).ToList());
+            return sortedPeople.Select(p => _mapper.Map<PersonResponse>(p)).ToList();
         }
 
-        public Task<PersonResponse> UpdatePerson(PersonUpdateRequest personUpdateRequest)
+        public async Task<PersonResponse> UpdatePerson(PersonUpdateRequest personUpdateRequest,CancellationToken cancellationToken = default)
         {
-            var personToUpdate = _personRepository.GetPersonById(personUpdateRequest.PersonId);
+            var personToUpdate = await _personRepository.GetPersonByIdAsync(personUpdateRequest.PersonId,cancellationToken);
             if (personToUpdate == null)
             {
                 throw new KeyNotFoundException($"Person with ID {nameof(personUpdateRequest.PersonId)} not found.");
@@ -125,10 +127,10 @@ namespace Services
             //personToUpdate.CountryId = personUpdateRequest.CountryId;
             //personToUpdate.Gender = personUpdateRequest.Gender.ToString();
             //personToUpdate.ReceiveNewsLetters = personUpdateRequest.ReceiveNewsLetters;
-            _personRepository.UpdatePerson(personToUpdate);
+            await _personRepository.UpdatePersonAsync(personToUpdate,cancellationToken);
 
             PersonResponse personResponse = _mapper.Map<PersonResponse>(personToUpdate);
-            return Task.FromResult(personResponse);
+            return personResponse;
 
         }
 

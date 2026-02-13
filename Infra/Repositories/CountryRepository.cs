@@ -41,6 +41,11 @@ namespace Infra.Repositories
            return await _dbContext.Countries.AnyAsync(country => country.CountryId == countryId, cancellationToken);
         }
 
+        public async Task<bool> ExistsByNameAsync(string countryName, CancellationToken cancellationToken = default)
+        {
+            return await _dbContext.Countries.AsNoTracking().AnyAsync(x => x.CountryName.ToLower() == countryName,cancellationToken);
+        }
+
         public async Task<IReadOnlyList<Country>> GetAllCountriesAsync(CancellationToken cancellationToken = default)
         {
             return await _dbContext.Countries.AsNoTracking().ToListAsync(cancellationToken);

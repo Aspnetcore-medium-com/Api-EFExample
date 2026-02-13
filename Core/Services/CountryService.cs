@@ -17,14 +17,15 @@ namespace Services
         private readonly ICountryRepository _countryRepository;
         private readonly IMapper _mapper;
 
-        public CountryService(IMapper mapper,ICountryRepository countryRepository) { 
+        public CountryService(IMapper mapper, ICountryRepository countryRepository)
+        {
             _countryRepository = countryRepository;
             _mapper = mapper;
         }
 
-        
 
-        public async Task<CountryResponse> AddCountry(CountryAddRequest? countryAddRequest)
+
+        public async Task<CountryResponse> AddCountry(CountryAddRequest? countryAddRequest, CancellationToken cancellationToken = default)
         {
             if (countryAddRequest == null)
             {
@@ -33,36 +34,40 @@ namespace Services
 
             if (string.IsNullOrEmpty(countryAddRequest.CountryName))
             {
-                throw new ArgumentException("Country name cannot be null or empty.", nameof(countryAddRequest.CountryName));
+                throw new ArgumentException("Country name cannot be null or empty.", nameof(countryAddRequest));
             }
 
-            if ( _countryRepository.GetAllCountries().Any(country => country.CountryName.Equals(countryAddRequest.CountryName,StringComparison.OrdinalIgnoreCase)))
+            var countries = await _countryRepository.GetAllCountriesAsync(cancellationToken);
+
+
+            if (countries.Any(country => country.CountryName.Equals(countryAddRequest.CountryName, StringComparison.OrdinalIgnoreCase)))
             {
-                throw new ArgumentException(message: "Country with the same name already exists.",paramName: nameof(countryAddRequest.CountryName));
+                throw new ArgumentException(message: "Country with the same name already exists.", paramName: nameof(countryAddRequest));
             }
             Country country = _mapper.Map<Country>(countryAddRequest);
 
             country.CountryId = Guid.NewGuid();
-            await _countryRepository.AddCountry(country);
+            await _countryRepository.AddCountryAsync(country, cancellationToken);
             CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
             return await Task.FromResult(countryResponse);
-
         }
 
-        public Task<List<CountryResponse>> GetAllCountries()
+        public async Task<IReadOnlyList<CountryResponse>> GetAllCountries(CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(_countryRepository.GetAllCountries().Select(country => _mapper.Map<CountryResponse>(country)).ToList());
+            var countries = await _countryRepository.GetAllCountriesAsync(cancellationToken);
+            return countries.Select(country => _mapper.Map<CountryResponse>(country)).ToList();
         }
 
-        public Task<CountryResponse> GetCountryById(Guid guid)
+        public async Task<CountryResponse?> GetCountryById(Guid countryId, CancellationToken cancellationToken = default)
         {
-           Country? country = _countryRepository.GetCountry(guid);
-           if (country == null)
-           {
-                throw new ArgumentException(message: "Country with the specified ID does not exist.", paramName: nameof(guid));
-           }
-           CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
-           return Task.FromResult(countryResponse);
+            Country? country = await _countryRepository.GetCountryByIdAsync(countryId, cancellationToken);
+            if (country == null)
+            {
+                throw new ArgumentException(message: "Country with the specified ID does not exist.", paramName: nameof(countryId));
+            }
+            CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
+            return countryResponse;
         }
+
     }
 }
