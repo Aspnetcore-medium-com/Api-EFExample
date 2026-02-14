@@ -1,5 +1,6 @@
 ﻿using ServiceContracts.DTO;
 using ServiceContracts.enums;
+using Services.Entities;
 using System;
 using System.Threading.Tasks;
 
@@ -55,7 +56,6 @@ namespace ServiceContracts
         /// <param name="personId"></param>
         /// <returns></returns>
         Task<bool> DeletePerson(Guid personId, CancellationToken cancellationToken = default);
-
        
     }
 }

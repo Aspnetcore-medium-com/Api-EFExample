@@ -32,15 +32,7 @@ namespace Services
                 throw new ArgumentNullException(nameof(countryAddRequest));
             }
 
-            if (string.IsNullOrEmpty(countryAddRequest.CountryName))
-            {
-                throw new ArgumentException("Country name cannot be null or empty.", nameof(countryAddRequest));
-            }
-
-            var countries = await _countryRepository.GetAllCountriesAsync(cancellationToken);
-
-
-            if (countries.Any(country => country.CountryName.Equals(countryAddRequest.CountryName, StringComparison.OrdinalIgnoreCase)))
+            if (await _countryRepository.ExistsByNameAsync(countryAddRequest.CountryName, cancellationToken)) 
             {
                 throw new ArgumentException(message: "Country with the same name already exists.", paramName: nameof(countryAddRequest));
             }
@@ -49,7 +41,7 @@ namespace Services
             country.CountryId = Guid.NewGuid();
             await _countryRepository.AddCountryAsync(country, cancellationToken);
             CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
-            return await Task.FromResult(countryResponse);
+            return countryResponse;
         }
 
         public async Task<IReadOnlyList<CountryResponse>> GetAllCountries(CancellationToken cancellationToken = default)
@@ -63,7 +55,7 @@ namespace Services
             Country? country = await _countryRepository.GetCountryByIdAsync(countryId, cancellationToken);
             if (country == null)
             {
-                throw new ArgumentException(message: "Country with the specified ID does not exist.", paramName: nameof(countryId));
+                return null;
             }
             CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
             return countryResponse;
