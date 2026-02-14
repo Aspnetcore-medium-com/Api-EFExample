@@ -61,7 +61,10 @@ namespace Services.Seeders
                                 "seeders",
                                 "persons.json");
                     var jsonData = await File.ReadAllTextAsync($"{jsonPath}", Encoding.UTF8);
-                    var Persons = JsonSerializer.Deserialize<List<Person>>(jsonData);
+                    var Persons = JsonSerializer.Deserialize<List<Person>>(jsonData, new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
                     if (Persons?.Any() == true)
                     {
                         await context.Persons.AddRangeAsync(Persons);

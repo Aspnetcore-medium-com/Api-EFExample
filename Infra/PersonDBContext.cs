@@ -25,6 +25,9 @@ namespace Services
             modelBuilder.Entity<Country>()
                 .HasIndex(c => c.CountryName)
                 .IsUnique();
+            modelBuilder.Entity<Person>()
+                .HasIndex(p => p.PersonName)
+                .IsUnique();
 
         }
     }
