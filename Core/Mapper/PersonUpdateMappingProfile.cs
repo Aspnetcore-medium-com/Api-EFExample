@@ -13,7 +13,6 @@ namespace Core.Mapper
         public PersonUpdateMappingProfile()
         {
             CreateMap<ServiceContracts.DTO.PersonUpdateRequest, Person>();
-            CreateMap<Person, ServiceContracts.DTO.PersonResponse>();
         }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Services;
 
@@ -11,9 +12,11 @@ using Services;
 namespace Infra.Migrations
 {
     [DbContext(typeof(PersonDBContext))]
-    partial class PersonDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260214211036_persons_tin_added")]
+    partial class persons_tin_added
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -74,38 +77,15 @@ namespace Infra.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("TIN")
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(10)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(10)")
-                        .HasDefaultValue("AAAA1111")
-                        .HasColumnName("TaxIdentificationNumber");
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
 
                     b.HasKey("PersonId");
-
-                    b.HasIndex("CountryId");
 
                     b.HasIndex("PersonName")
                         .IsUnique();
 
-                    b.ToTable("Persons", null, t =>
-                        {
-                            t.HasCheckConstraint("CHK_TIN", "len([TaxIdentificationNumber]) = 8");
-                        });
-                });
-
-            modelBuilder.Entity("Services.Entities.Person", b =>
-                {
-                    b.HasOne("Entities.Country", "Country")
-                        .WithMany("Persons")
-                        .HasForeignKey("CountryId");
-
-                    b.Navigation("Country");
-                });
-
-            modelBuilder.Entity("Entities.Country", b =>
-                {
-                    b.Navigation("Persons");
+                    b.ToTable("Persons", (string)null);
                 });
 #pragma warning restore 612, 618
         }

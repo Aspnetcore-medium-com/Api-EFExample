@@ -53,7 +53,18 @@ namespace Services
         public async Task<IReadOnlyList<PersonResponse>> GetAllPersons(CancellationToken cancellationToken = default)
         {
             var persons = await _personRepository.GetAllPersonsAsync(cancellationToken);
+           
+            try
+            {
+                _mapper.ConfigurationProvider.AssertConfigurationIsValid();
+                Console.WriteLine("AutoMapper configuration is VALID");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"AutoMapper configuration ERROR: {ex.Message}");
+            }
             List<PersonResponse> personResponses = _mapper.Map<List<PersonResponse>>(persons);
+           
             return personResponses;
         }
 

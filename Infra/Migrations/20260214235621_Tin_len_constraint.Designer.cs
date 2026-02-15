@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Services;
 
@@ -11,9 +12,11 @@ using Services;
 namespace Infra.Migrations
 {
     [DbContext(typeof(PersonDBContext))]
-    partial class PersonDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260214235621_Tin_len_constraint")]
+    partial class Tin_len_constraint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -83,29 +86,13 @@ namespace Infra.Migrations
 
                     b.HasKey("PersonId");
 
-                    b.HasIndex("CountryId");
-
                     b.HasIndex("PersonName")
                         .IsUnique();
 
                     b.ToTable("Persons", null, t =>
                         {
-                            t.HasCheckConstraint("CHK_TIN", "len([TaxIdentificationNumber]) = 8");
+                            t.HasCheckConstraint("CHK_TIN", "len([TaxIdentificationNumber] = 8");
                         });
-                });
-
-            modelBuilder.Entity("Services.Entities.Person", b =>
-                {
-                    b.HasOne("Entities.Country", "Country")
-                        .WithMany("Persons")
-                        .HasForeignKey("CountryId");
-
-                    b.Navigation("Country");
-                });
-
-            modelBuilder.Entity("Entities.Country", b =>
-                {
-                    b.Navigation("Persons");
                 });
 #pragma warning restore 612, 618
         }

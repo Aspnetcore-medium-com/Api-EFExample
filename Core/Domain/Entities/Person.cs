@@ -1,6 +1,8 @@
-﻿using System;
+﻿using Entities;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,10 +26,13 @@ namespace Services.Entities
         public DateTime? DateOfBirth { get; set; }
         [StringLength(40)]
         public String? Gender { get; set; }
-
         public Guid? CountryId { get; set; }
         [StringLength(100)]
         public string? Address { get; set; }
         public bool ReceiveNewsLetters { get; set; }
+        [StringLength(40)]
+        public string? TIN {  get; set; }
+       
+        public Country? Country { get; set; }
     }
 }

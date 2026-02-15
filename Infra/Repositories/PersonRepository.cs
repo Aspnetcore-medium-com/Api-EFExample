@@ -54,12 +54,12 @@ namespace Infra.Repositories
 
         public async Task<IReadOnlyList<Person>> GetAllPersonsAsync(CancellationToken cancellationToken = default)
         {
-            return await _personDBContext.Persons.AsNoTracking().ToListAsync(cancellationToken);
+            return await _personDBContext.Persons.Include(p => p.Country).AsNoTracking().ToListAsync(cancellationToken);
         }
 
         public async Task<Person?> GetPersonByIdAsync(Guid personId, CancellationToken cancellationToken = default)
         {
-            return await _personDBContext.Persons.AsNoTracking().FirstOrDefaultAsync(p => p.PersonId == personId, cancellationToken);
+            return await _personDBContext.Persons.Include(p => p.Country).AsNoTracking().FirstOrDefaultAsync(p => p.PersonId == personId, cancellationToken);
         }
 
         public IQueryable<Person> GetPersonsQueryable(CancellationToken cancellationToken = default)

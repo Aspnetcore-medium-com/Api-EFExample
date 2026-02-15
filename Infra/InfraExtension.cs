@@ -14,11 +14,12 @@ namespace Infra
 {
     public static class InfraExtension
     {
-        public static void AddInfra(this IServiceCollection services, IConfiguration configuration)
+        public static IServiceCollection AddInfra(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddDbContext<PersonDBContext>(options => options.UseSqlServer(configuration.GetConnectionString("Default")));
             services.AddTransient<ICountryRepository,CountryRepository>();
             services.AddTransient<IPersonRepository, PersonRepository>();
+            return services;
         }
     }
 }

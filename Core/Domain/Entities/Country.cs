@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Services.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace Entities
 {
@@ -8,5 +9,7 @@ namespace Entities
         public Guid CountryId { get; set; }
         [StringLength(100)]
         public string CountryName { get; set; } = string.Empty;
+
+        public ICollection<Person>? Persons { get; set;} 
     }
 }

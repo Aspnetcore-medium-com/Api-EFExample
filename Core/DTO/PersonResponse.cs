@@ -23,6 +23,7 @@ namespace ServiceContracts.DTO
         public string? Address { get; set; }
 
         public Guid? CountryId { get; set; }
+        public string? CountryName { get; set; }
 
         public bool ReceiveNewsLetters { get; set; }
     }

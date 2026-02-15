@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Core.Mapper;
+using Microsoft.Extensions.DependencyInjection;
 using ServiceContracts;
 using Services;
 using System;
@@ -11,10 +12,17 @@ namespace Core
 {
     public static class CoreExtension
     {
-        public static void AddCore(this IServiceCollection services) {
-            services.AddAutoMapper(cfg => { }, typeof(CoreExtension).Assembly);
+        public static IServiceCollection AddCore(this IServiceCollection services) {
+            Console.WriteLine("=== AutoMapper is being configured ===");
+
+            services.AddAutoMapper(config =>
+            {
+                config.AddMaps(typeof(PersonMappingProfile).Assembly);
+            });
+
             services.AddTransient<IPersonService,PersonService>();
             services.AddTransient<ICountryService,CountryService>();
+            return services;
         }
     }
 }
