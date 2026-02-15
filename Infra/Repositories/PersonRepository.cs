@@ -10,9 +10,9 @@ namespace Infra.Repositories
 {
     public class PersonRepository : IPersonRepository
     {
-        private readonly PersonDBContext _personDBContext;
+        private readonly ApplicationDBContext _personDBContext;
 
-        public PersonRepository(PersonDBContext personDBContext)
+        public PersonRepository(ApplicationDBContext personDBContext)
         {
             _personDBContext = personDBContext;
         }

@@ -11,7 +11,7 @@ using Services;
 
 namespace Infra.Migrations
 {
-    [DbContext(typeof(PersonDBContext))]
+    [DbContext(typeof(ApplicationDBContext))]
     [Migration("20260212173708_initial")]
     partial class initial
     {

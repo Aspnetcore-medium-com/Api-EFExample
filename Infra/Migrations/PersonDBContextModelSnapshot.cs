@@ -10,7 +10,7 @@ using Services;
 
 namespace Infra.Migrations
 {
-    [DbContext(typeof(PersonDBContext))]
+    [DbContext(typeof(ApplicationDBContext))]
     partial class PersonDBContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

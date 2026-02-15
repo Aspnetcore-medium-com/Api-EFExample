@@ -11,7 +11,7 @@ using Services;
 
 namespace Infra.Migrations
 {
-    [DbContext(typeof(PersonDBContext))]
+    [DbContext(typeof(ApplicationDBContext))]
     [Migration("20260214170717_indexing")]
     partial class indexing
     {

@@ -11,7 +11,7 @@ using Services;
 
 namespace Infra.Migrations
 {
-    [DbContext(typeof(PersonDBContext))]
+    [DbContext(typeof(ApplicationDBContext))]
     [Migration("20260214211036_persons_tin_added")]
     partial class persons_tin_added
     {

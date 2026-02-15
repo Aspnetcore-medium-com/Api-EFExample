@@ -11,7 +11,7 @@ using Services;
 
 namespace Infra.Migrations
 {
-    [DbContext(typeof(PersonDBContext))]
+    [DbContext(typeof(ApplicationDBContext))]
     [Migration("20260215074533_Relationship")]
     partial class Relationship
     {

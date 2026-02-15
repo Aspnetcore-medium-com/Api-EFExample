@@ -11,7 +11,7 @@ using Services;
 
 namespace Infra.Migrations
 {
-    [DbContext(typeof(PersonDBContext))]
+    [DbContext(typeof(ApplicationDBContext))]
     [Migration("20260214235621_Tin_len_constraint")]
     partial class Tin_len_constraint
     {

@@ -36,7 +36,7 @@ namespace Services.Seeders
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
             using var scope = serviceProvider.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<PersonDBContext>();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
             await context.Database.MigrateAsync();
             if (context.Database != null)
             {

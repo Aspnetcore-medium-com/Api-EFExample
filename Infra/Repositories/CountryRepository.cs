@@ -9,9 +9,9 @@ namespace Infra.Repositories
 {
     public class CountryRepository : ICountryRepository
     {
-        private readonly PersonDBContext _dbContext;
+        private readonly ApplicationDBContext _dbContext;
 
-        public CountryRepository(PersonDBContext dbContext)
+        public CountryRepository(ApplicationDBContext dbContext)
         {
             _dbContext = dbContext;
         }

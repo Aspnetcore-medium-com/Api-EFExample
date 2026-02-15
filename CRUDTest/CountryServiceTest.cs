@@ -187,7 +187,7 @@ namespace xunitCRUDTests
             Assert.NotNull(country);
             Assert.Equal(addedCountry1.CountryId, country.CountryId);
             Assert.Equal(addedCountry1.CountryName, country.CountryName);
-        } 
+        }
 
         #endregion
 

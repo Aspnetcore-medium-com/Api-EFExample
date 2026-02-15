@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace Services
 {
-    public class PersonDBContext : DbContext
+    public class ApplicationDBContext : DbContext
     {
         public DbSet<Person> Persons { get; set; }
         public DbSet<Country> Countries { get; set; }
 
-        public PersonDBContext(DbContextOptions options):base(options) { }
+        public ApplicationDBContext(DbContextOptions options):base(options) { }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Country>().ToTable("Countries");
