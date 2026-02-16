@@ -55,20 +55,7 @@ namespace CRUDTest
             await act.Should().ThrowAsync<ArgumentNullException>();
         }
 
-        //public async Task<PersonResponse> AddPerson(PersonAddRequest? personAddRequest, CancellationToken cancellationToken = default)
-        //{
-        //    if (personAddRequest == null)
-        //    {
-        //        throw new ArgumentNullException(nameof(personAddRequest));
-        //    }
-
-        //    Person person = _mapper.Map<Person>(personAddRequest);
-
-        //    person.PersonId = Guid.NewGuid();
-        //    await _personRepository.AddPersonAsync(person, cancellationToken);
-        //    PersonResponse personResponse = _mapper.Map<PersonResponse>(person);
-        //    return personResponse;
-        //}
+    
 
         [Fact]
         public async Task AddPerson_WhenValidRequest_ShouldAddPersonAndReturnPersonResponse()
@@ -97,5 +84,63 @@ namespace CRUDTest
 
             _personRepositoryMock.Verify(r => r.AddPersonAsync(It.Is<Person>(p => p.PersonId != Guid.Empty),It.IsAny<CancellationToken>()),Times.Once);
         }
+
+
+        //public async Task<bool> DeletePerson(Guid personId, CancellationToken cancellationToken = default)
+        //{
+        //    Person? person = await _personRepository.GetPersonByIdAsync(personId, cancellationToken);
+        //    if (person == null)
+        //    {
+        //        throw new KeyNotFoundException($"Person with ID {personId} not found.");
+        //    }
+        //    return await _personRepository.DeletePersonAsync(person.PersonId, cancellationToken);
+
+        //}
+        [Fact]
+        public async Task GetPersonById_WhenInvalidPersonId_ShouldReturnNull()
+        {
+            //Arrange
+            Guid personId = Guid.NewGuid();
+            _personRepositoryMock.Setup(r => r.GetPersonByIdAsync(personId, It.IsAny<CancellationToken>())).ReturnsAsync((Person?)null);
+
+            //Act
+            var result = await _sut.GetPersonById(personId, CancellationToken.None);
+
+            //Assert
+            result.Should().BeNull();
+        }
+
+        [Fact]
+        public async Task DeletePerson_WhenPersonNotFound_ShouldThrowKeyNotFoundException()
+        {
+            // Arrange
+            Guid personId = Guid.NewGuid();
+            _personRepositoryMock.Setup(p => p.GetPersonByIdAsync(personId,It.IsAny<CancellationToken>())).ReturnsAsync((Person?)null);
+
+            //Act
+            Func<Task> act = async () => await _sut.DeletePerson(PersonId, CancellationToken.None);
+
+            // Assert
+            await act.Should().ThrowAsync<KeyNotFoundException>();
+
+        }
+
+        [Fact]
+        public async Task DeletePerson_WhenPersonNotFound_ShouldThrowKeyNotFoundException()
+        {
+            // Arrange
+            Guid personId = Guid.NewGuid();
+
+            _personRepositoryMock
+                .Setup(r => r.GetPersonByIdAsync(personId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Person?)null);
+
+            // Act
+            Func<Task> act = async () => await _sut.DeletePerson(personId, CancellationToken.None);
+
+            // Assert
+            await act.Should().ThrowAsync<KeyNotFoundException>();
+        }
+
     }
 }
