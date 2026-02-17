@@ -197,25 +197,7 @@ namespace CRUDTest
             _personRepositoryMock.Verify(r => r.GetPersonByIdAsync(personUpdateRequest.PersonId, It.IsAny<CancellationToken>()), Times.Once());
         }
 
-        //public async Task<PersonResponse> UpdatePerson(PersonUpdateRequest personUpdateRequest, CancellationToken cancellationToken = default)
-        //{
-        //    if (personUpdateRequest == null)
-        //    {
-        //        throw new ArgumentNullException(nameof(personUpdateRequest));
-        //    }
-        //    var personToUpdate = await _personRepository.GetPersonByIdAsync(personUpdateRequest.PersonId, cancellationToken);
-        //    if (personToUpdate == null)
-        //    {
-        //        throw new KeyNotFoundException($"Person with ID {personUpdateRequest.PersonId} not found.");
-        //    }
-
-        //    _mapper.Map(personUpdateRequest, personToUpdate);
-        //    await _personRepository.UpdatePersonAsync(personToUpdate, cancellationToken);
-
-        //    PersonResponse personResponse = _mapper.Map<PersonResponse>(personToUpdate);
-        //    return personResponse;
-
-        //}
+     
 
         [Fact]
         public async Task UpdatePerson_WhenValidPersonUpdateRequest_ShouldReturnPersonResponse()

@@ -1,0 +1,108 @@
+﻿using AutoFixture;
+using AutoFixture.AutoMoq;
+using AutoMapper;
+using Core.Domain.RepositoryContracts;
+using Entities;
+using FluentAssertions;
+using Infra.Repositories;
+using Moq;
+using ServiceContracts.DTO;
+using Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace CRUDTest
+{
+    public class CountryServiceTestWithRepo
+    {
+        private readonly IFixture _fixture;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<ICountryRepository> _countryRepositoryMock;
+        private readonly CountryService _sut;
+
+        public CountryServiceTestWithRepo() { 
+            _fixture = new Fixture().Customize(new AutoMoqCustomization());
+            _mapperMock = _fixture.Freeze<Mock<IMapper>>();
+            _countryRepositoryMock = _fixture.Freeze<Mock<ICountryRepository>>();
+            _sut = _fixture.Create<CountryService>();
+
+            // Fix circular reference issue
+            _fixture.Behaviors
+                .OfType<ThrowingRecursionBehavior>()
+                .ToList()
+                .ForEach(b => _fixture.Behaviors.Remove(b));
+
+            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+        }
+
+
+       
+        [Fact]
+        public async Task AddCountry_WhenNullCountryAddRequest_ShouldThrowArgumentNullException()
+        {
+            //Arrange
+            CountryAddRequest? request = null;
+            //Act
+            Func<Task> act = async () => await _sut.AddCountry(request,CancellationToken.None);
+            //Assert
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task AddCountry_WhenCountryAlreadyExists_ShouldThrowArgumentException()
+        {
+            // Arrange
+            var request = _fixture.Create<CountryAddRequest>();
+            _countryRepositoryMock.Setup(r => r.ExistsByNameAsync(request.CountryName,It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            // Act
+            Func<Task> act = async () => await _sut.AddCountry(request, CancellationToken.None);
+            // Assert 
+            await act.Should().ThrowAsync<ArgumentException>();
+        }
+
+        //public async Task<CountryResponse> AddCountry(CountryAddRequest? countryAddRequest, CancellationToken cancellationToken = default)
+        //{
+        //    if (countryAddRequest == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(countryAddRequest));
+        //    }
+
+        //    if (await _countryRepository.ExistsByNameAsync(countryAddRequest.CountryName, cancellationToken))
+        //    {
+        //        throw new ArgumentException(message: "Country with the same name already exists.", paramName: nameof(countryAddRequest));
+        //    }
+        //    Country country = _mapper.Map<Country>(countryAddRequest);
+
+        //    country.CountryId = Guid.NewGuid();
+        //    await _countryRepository.AddCountryAsync(country, cancellationToken);
+        //    CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
+        //    return countryResponse;
+        //}
+
+        [Fact]
+        public async Task AddCountry_WhenValidCountryAddRequest_ShouldAddCountry()
+        {
+            // Arrange
+            var request = _fixture.Create<CountryAddRequest>();
+
+            var country = _fixture.Create<Country>();
+
+            var expectedResponse = _fixture.Build<CountryResponse>().With(c => c.CountryId, country.CountryId).Create();
+
+            _countryRepositoryMock.Setup(r => r.ExistsByNameAsync(request.CountryName,It.IsAny<CancellationToken>())).ReturnsAsync(false);
+            _mapperMock.Setup(m => m.Map<Country>(request)).Returns(country);
+            _mapperMock.Setup(m => m.Map<CountryResponse>(It.IsAny<Country>())).Returns(expectedResponse);
+            // Act
+
+            var result = await _sut.AddCountry(request,CancellationToken.None);
+
+            // Assert
+            result.Should().Be(expectedResponse);
+
+            _countryRepositoryMock.Verify(r => r.AddCountryAsync(country,It.IsAny<CancellationToken>()), Times.Once());
+        }
+    }
+}
