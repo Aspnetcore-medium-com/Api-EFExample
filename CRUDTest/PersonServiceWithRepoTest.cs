@@ -3,6 +3,7 @@ using AutoFixture.AutoMoq;
 using AutoMapper;
 using Core.Domain.RepositoryContracts;
 using FluentAssertions;
+using FluentAssertions.Execution;
 using FluentValidation;
 using Infra.Repositories;
 using Microsoft.Identity.Client;
@@ -117,17 +118,6 @@ namespace CRUDTest
 
         }
 
-        //public async Task<bool> DeletePerson(Guid personId, CancellationToken cancellationToken = default)
-        //{
-        //    Person? person = await _personRepository.GetPersonByIdAsync(personId, cancellationToken);
-        //    if (person == null)
-        //    {
-        //        throw new KeyNotFoundException($"Person with ID {personId} not found.");
-        //    }
-        //    return await _personRepository.DeletePersonAsync(person.PersonId, cancellationToken);
-
-        //}
-
         [Fact]
         public async Task DeletePerson_WhenPersonIsValid_ShouldDeletePersonAndReturnTrue()
         {
@@ -177,5 +167,74 @@ namespace CRUDTest
             _personRepositoryMock.Verify(r => r.GetAllPersonsAsync(It.IsAny<CancellationToken>()), Times.Once());
         }
 
+
+        [Fact]
+        public async Task UpdatePerson_WhenNullPersonUpdateRequest_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            PersonUpdateRequest? personUpdateRequest = null;
+
+            // Act
+            Func<Task> act = async () => await _sut.UpdatePerson(personUpdateRequest!,CancellationToken.None);
+
+            // Assert
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task UpdatePerson_WhenGetPersonByIdAsyncReturnsNull_ShouldThrowKeyNotFoundException()
+        {
+            // Arrange
+            PersonUpdateRequest personUpdateRequest = _fixture.Build<PersonUpdateRequest>()
+                .With(p => p.PersonId, Guid.NewGuid())
+                .Create();
+            _personRepositoryMock.Setup(r => r.GetPersonByIdAsync(personUpdateRequest.PersonId, It.IsAny<CancellationToken>())).ReturnsAsync((Person?)null);
+            // Act
+            Func<Task> act = async () =>  await _sut.UpdatePerson(personUpdateRequest,CancellationToken.None);
+            // Assert
+            await act.Should().ThrowAsync<KeyNotFoundException>();
+
+            _personRepositoryMock.Verify(r => r.GetPersonByIdAsync(personUpdateRequest.PersonId, It.IsAny<CancellationToken>()), Times.Once());
+        }
+
+        //public async Task<PersonResponse> UpdatePerson(PersonUpdateRequest personUpdateRequest, CancellationToken cancellationToken = default)
+        //{
+        //    if (personUpdateRequest == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(personUpdateRequest));
+        //    }
+        //    var personToUpdate = await _personRepository.GetPersonByIdAsync(personUpdateRequest.PersonId, cancellationToken);
+        //    if (personToUpdate == null)
+        //    {
+        //        throw new KeyNotFoundException($"Person with ID {personUpdateRequest.PersonId} not found.");
+        //    }
+
+        //    _mapper.Map(personUpdateRequest, personToUpdate);
+        //    await _personRepository.UpdatePersonAsync(personToUpdate, cancellationToken);
+
+        //    PersonResponse personResponse = _mapper.Map<PersonResponse>(personToUpdate);
+        //    return personResponse;
+
+        //}
+
+        [Fact]
+        public async Task UpdatePerson_WhenValidPersonUpdateRequest_ShouldReturnPersonResponse()
+        {
+            // Arrange
+            PersonUpdateRequest personUpdateRequest = _fixture.Build< PersonUpdateRequest>().With(p => p.PersonId, Guid.NewGuid())
+                .Create();
+            var personInDB = _fixture.Build<Person>().With(p => p.PersonId, personUpdateRequest.PersonId).Create();
+            var expectedResponse = _fixture.Create<PersonResponse>();
+
+            _personRepositoryMock.Setup(r => r.GetPersonByIdAsync(personUpdateRequest.PersonId, It.IsAny<CancellationToken>())).ReturnsAsync(personInDB);
+            _personRepositoryMock.Setup(r => r.UpdatePersonAsync(personInDB, It.IsAny<CancellationToken>())).ReturnsAsync(personInDB);
+            _mapperMock.Setup(m => m.Map<PersonResponse>(personInDB)).Returns(expectedResponse);
+            // Act
+            //Func<Task> act = async () => await _sut.UpdatePerson(personUpdateRequest,CancellationToken.None);
+            var act = await _sut.UpdatePerson(personUpdateRequest, CancellationToken.None);
+            // Assert
+            act.Should().BeEquivalentTo(expectedResponse);
+            _personRepositoryMock.Verify(p => p.UpdatePersonAsync(personInDB,It.IsAny<CancellationToken>()), Times.Once());
+        }
     }
 }
