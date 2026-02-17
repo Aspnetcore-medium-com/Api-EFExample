@@ -63,25 +63,6 @@ namespace CRUDTest
             await act.Should().ThrowAsync<ArgumentException>();
         }
 
-        //public async Task<CountryResponse> AddCountry(CountryAddRequest? countryAddRequest, CancellationToken cancellationToken = default)
-        //{
-        //    if (countryAddRequest == null)
-        //    {
-        //        throw new ArgumentNullException(nameof(countryAddRequest));
-        //    }
-
-        //    if (await _countryRepository.ExistsByNameAsync(countryAddRequest.CountryName, cancellationToken))
-        //    {
-        //        throw new ArgumentException(message: "Country with the same name already exists.", paramName: nameof(countryAddRequest));
-        //    }
-        //    Country country = _mapper.Map<Country>(countryAddRequest);
-
-        //    country.CountryId = Guid.NewGuid();
-        //    await _countryRepository.AddCountryAsync(country, cancellationToken);
-        //    CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
-        //    return countryResponse;
-        //}
-
         [Fact]
         public async Task AddCountry_WhenValidCountryAddRequest_ShouldAddCountry()
         {
