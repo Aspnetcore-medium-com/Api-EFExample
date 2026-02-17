@@ -85,5 +85,24 @@ namespace CRUDTest
 
             _countryRepositoryMock.Verify(r => r.AddCountryAsync(country,It.IsAny<CancellationToken>()), Times.Once());
         }
+
+        //public async Task<IReadOnlyList<CountryResponse>> GetAllCountries(CancellationToken cancellationToken = default)
+        //{
+        //    var countries = await _countryRepository.GetAllCountriesAsync(cancellationToken);
+        //    return countries.Select(country => _mapper.Map<CountryResponse>(country)).ToList();
+        //}
+        [Fact]
+        public async Task GetAllCountries_ShouldGetAllCountries() {
+            // Arrange
+            var countries = new List<Country>()
+            {
+                new Country() { CountryId = Guid.NewGuid(), CountryName = "UK" },
+                new Country() { CountryId = Guid.NewGuid(), CountryName = "US"}
+            };
+
+            // Act
+
+            // Assert
+        }
     }
 }
