@@ -23,7 +23,6 @@ namespace CRUDTest
     public class PersonServiceWithRepoTest
     {
         private readonly Mock<IMapper> _mapperMock;
-        //private readonly IValidator<PersonAddRequest> _validator;
         private readonly IFixture _fixture;
         private readonly Mock<IPersonRepository> _personRepositoryMock;
         private readonly PersonService _sut; //system under test

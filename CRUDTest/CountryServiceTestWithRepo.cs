@@ -86,13 +86,9 @@ namespace CRUDTest
             _countryRepositoryMock.Verify(r => r.AddCountryAsync(country,It.IsAny<CancellationToken>()), Times.Once());
         }
 
-        //public async Task<IReadOnlyList<CountryResponse>> GetAllCountries(CancellationToken cancellationToken = default)
-        //{
-        //    var countries = await _countryRepository.GetAllCountriesAsync(cancellationToken);
-        //    return countries.Select(country => _mapper.Map<CountryResponse>(country)).ToList();
-        //}
+      
         [Fact]
-        public async Task GetAllCountries_ShouldGetAllCountries() {
+        public async Task GetAllCountries_WhenCountriesExists_ShouldGetAllCountries() {
             // Arrange
             var countries = new List<Country>()
             {
@@ -100,9 +96,70 @@ namespace CRUDTest
                 new Country() { CountryId = Guid.NewGuid(), CountryName = "US"}
             };
 
+            var expectedCountries = new List<CountryResponse>()
+            {
+                new CountryResponse() {CountryId = countries[0].CountryId, CountryName = countries[0].CountryName },
+                new CountryResponse() {CountryId= countries[1].CountryId, CountryName = countries[1].CountryName}
+            };
+
+            _countryRepositoryMock.Setup(r => r.GetAllCountriesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(countries);
+            _mapperMock
+                .Setup(m => m.Map<CountryResponse>(It.IsAny<Country>()))
+                .Returns((Country c) => new CountryResponse
+                {
+                    CountryId = c.CountryId,
+                    CountryName = c.CountryName
+                });
+
             // Act
+            var result = await _sut.GetAllCountries(cancellationToken: CancellationToken.None);
 
             // Assert
+            result.Should().BeEquivalentTo(expectedCountries);
+
+            _countryRepositoryMock.Verify(r => r.GetAllCountriesAsync(It.IsAny<CancellationToken>()), Times.Once());
+        }
+
+
+        //public async Task<CountryResponse?> GetCountryById(Guid countryId, CancellationToken cancellationToken = default)
+        //{
+        //    Country? country = await _countryRepository.GetCountryByIdAsync(countryId, cancellationToken);
+        //    if (country == null)
+        //    {
+        //        return null;
+        //    }
+        //    CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
+        //    return countryResponse;
+        //}
+        [Fact]
+        public async Task GetCountryById_WhenCountryNotFound_ShouldThrowArgumentException()
+        {
+            // Arrange
+            Guid countryId = Guid.NewGuid();
+            _countryRepositoryMock.Setup(c => c.GetCountryByIdAsync(countryId,It.IsAny<CancellationToken>())).ReturnsAsync((Country?) null);
+            // Act
+            Func<Task> act = async () => await _sut.GetCountryById(countryId,CancellationToken.None);
+            //Assert
+            await act.Should().ThrowAsync<ArgumentException>();
+        }
+
+        [Fact]
+        public async Task GetCoutryById_WhenValidCountry_ShouldReturnCountryResponse()
+        {
+            // Arrange
+            // Arrange
+            Guid countryId = Guid.NewGuid();
+            var country = _fixture.Build<Country>().With(c => c.CountryId, countryId).Create();
+            var expectedCountry = _fixture.Build<CountryResponse>().With(c =>c.CountryId, country.CountryId).Create();
+            _countryRepositoryMock.Setup(c => c.GetCountryByIdAsync(countryId, It.IsAny<CancellationToken>())).ReturnsAsync(country);
+            _mapperMock.Setup(m => m.Map<CountryResponse>(It.IsAny<Country>())).Returns(expectedCountry);
+            // Act
+            var result = await _sut.GetCountryById(countryId,CancellationToken.None);
+            // Assert
+            result.Should().NotBeNull();
+            result.Should().BeEquivalentTo(expectedCountry);
+
+            _countryRepositoryMock.Verify(r => r.GetCountryByIdAsync(countryId,It.IsAny<CancellationToken>()), Times.Once());
         }
     }
 }

@@ -55,7 +55,7 @@ namespace Services
             Country? country = await _countryRepository.GetCountryByIdAsync(countryId, cancellationToken);
             if (country == null)
             {
-                return null;
+                throw new ArgumentException($"{countryId} not found exception");
             }
             CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
             return countryResponse;
