@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infra", "Infra\Infra.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CRUDTest", "CRUDTest\CRUDTest.csproj", "{96333DE4-0BDD-4DA2-8272-1EBBFFBED092}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CRUDTest.Integration", "CRUDTest.Integration\CRUDTest.Integration.csproj", "{26F96AF2-200B-417E-BCC8-972D96752881}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{96333DE4-0BDD-4DA2-8272-1EBBFFBED092}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{96333DE4-0BDD-4DA2-8272-1EBBFFBED092}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{96333DE4-0BDD-4DA2-8272-1EBBFFBED092}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26F96AF2-200B-417E-BCC8-972D96752881}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26F96AF2-200B-417E-BCC8-972D96752881}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26F96AF2-200B-417E-BCC8-972D96752881}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26F96AF2-200B-417E-BCC8-972D96752881}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

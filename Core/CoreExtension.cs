@@ -1,6 +1,9 @@
 ﻿using Core.Mapper;
+using Core.Validator;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using ServiceContracts;
+using ServiceContracts.DTO;
 using Services;
 using System;
 using System.Collections.Generic;
@@ -22,6 +25,7 @@ namespace Core
 
             services.AddTransient<IPersonService,PersonService>();
             services.AddTransient<ICountryService,CountryService>();
+            services.AddValidatorsFromAssemblyContaining<PersonAddValidator>();
             return services;
         }
     }

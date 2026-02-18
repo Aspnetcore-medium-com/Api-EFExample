@@ -2,6 +2,8 @@
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using FluentAssertions;
+using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -19,11 +21,12 @@ namespace CRUDTest.Controllers
     public class PersonControllerTests
     {
         private readonly Mock<IPersonService> _personServiceMock;
-
+        private readonly Mock<IValidator<PersonAddRequest>> _validatorMock;
         private readonly PersonController _sut ;
         public PersonControllerTests() {
             _personServiceMock = new Mock<IPersonService>();
-            _sut = new PersonController(_personServiceMock.Object);
+            _validatorMock = new Mock<IValidator<PersonAddRequest>>();
+            _sut = new PersonController(_personServiceMock.Object,_validatorMock.Object);
         }
 
       
@@ -120,8 +123,9 @@ namespace CRUDTest.Controllers
             var request = new PersonAddRequest() {  PersonName = "Test" };
             var response = new PersonResponse() { PersonName = "Test" , PersonId = Guid.NewGuid()};
             _personServiceMock.Setup(r => r.AddPerson(request, It.IsAny<CancellationToken>())).ReturnsAsync(response);
+            _validatorMock.Setup(v => v.ValidateAsync(request, It.IsAny<CancellationToken>())).ReturnsAsync(new ValidationResult()); // empty = valid
             //Act
-            var result = await _sut.Add(request, It.IsAny<CancellationToken>());
+            var result = await _sut.Add(request, CancellationToken.None);
 
             // Assert
             var CreatedAtActionResult = result.Result as CreatedAtActionResult;

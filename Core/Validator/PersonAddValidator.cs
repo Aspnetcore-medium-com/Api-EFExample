@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Core.Validator
 {
-    public class PersonValidator: AbstractValidator<PersonAddRequest>
+    public class PersonAddValidator: AbstractValidator<PersonAddRequest>
     {
-        public PersonValidator() { 
+        public PersonAddValidator() { 
             RuleFor(x => x.PersonName)
                 .NotEmpty().WithMessage("Person Name is required.")
                 .MaximumLength(100).WithMessage("Person Name cannot exceed 100 characters.");

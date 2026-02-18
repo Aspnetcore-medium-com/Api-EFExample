@@ -12,12 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-builder.Services.AddValidatorsFromAssemblyContaining<PersonValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<PersonAddValidator>();
 builder.Services.AddCore().AddInfra(builder.Configuration);
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-await DbSeeder.Seed(app.Services);
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    await DbSeeder.Seed(app.Services);
+}
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
@@ -25,3 +28,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program { }

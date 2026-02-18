@@ -37,7 +37,10 @@ namespace Services.Seeders
             }
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
-            await context.Database.MigrateAsync();
+            if (context.Database.IsRelational())
+            {
+                await context.Database.MigrateAsync();
+            }
             if (context.Database != null)
             {
                 if (!await context.Countries.AnyAsync())

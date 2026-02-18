@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Core.Validator;
+using FluentValidation;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using ServiceContracts;
 using ServiceContracts.DTO;
-using Microsoft.AspNetCore.Http;
+using Services.Entities;
+using System.ComponentModel.DataAnnotations;
 
 namespace Api_EFExample.Controllers
 {
@@ -10,10 +14,11 @@ namespace Api_EFExample.Controllers
     public class PersonController : ControllerBase
     {
         private readonly IPersonService _personService;
-
-        public PersonController(IPersonService personService)
+        private readonly IValidator<PersonAddRequest> _validator;
+        public PersonController(IPersonService personService,IValidator<PersonAddRequest> validator)
         {
             _personService = personService;
+            _validator = validator;
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PersonResponse>>> GetAll(CancellationToken cancellationToken = default)
@@ -55,6 +60,12 @@ namespace Api_EFExample.Controllers
         [HttpPost]
         public async Task<ActionResult<PersonResponse>> Add(PersonAddRequest personAddRequest, CancellationToken cancellationToken = default)
         {
+            var result = await _validator.ValidateAsync(personAddRequest);
+            if (!result.IsValid)
+                return BadRequest(result.Errors.Select(e => new {
+                    e.PropertyName,
+                    e.ErrorMessage
+                }));
             PersonResponse personResponse = await _personService.AddPerson(personAddRequest, cancellationToken);
             return CreatedAtAction(nameof(GetById),new {personId = personResponse.PersonId},personResponse);
         }
