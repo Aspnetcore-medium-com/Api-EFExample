@@ -16,14 +16,14 @@ using System.Threading.Tasks;
 
 namespace CRUDTest
 {
-    public class CountryServiceTestWithRepo
+    public class CountryServiceTests
     {
         private readonly IFixture _fixture;
         private readonly Mock<IMapper> _mapperMock;
         private readonly Mock<ICountryRepository> _countryRepositoryMock;
         private readonly CountryService _sut;
 
-        public CountryServiceTestWithRepo() { 
+        public CountryServiceTests() { 
             _fixture = new Fixture().Customize(new AutoMoqCustomization());
             _mapperMock = _fixture.Freeze<Mock<IMapper>>();
             _countryRepositoryMock = _fixture.Freeze<Mock<ICountryRepository>>();
@@ -38,8 +38,8 @@ namespace CRUDTest
             _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
         }
 
+        #region AddCountry Tests
 
-       
         [Fact]
         public async Task AddCountry_WhenNullCountryAddRequest_ShouldThrowArgumentNullException()
         {
@@ -86,7 +86,8 @@ namespace CRUDTest
             _countryRepositoryMock.Verify(r => r.AddCountryAsync(country,It.IsAny<CancellationToken>()), Times.Once());
         }
 
-      
+        #endregion
+        #region GetAll countries
         [Fact]
         public async Task GetAllCountries_WhenCountriesExists_ShouldGetAllCountries() {
             // Arrange
@@ -120,18 +121,8 @@ namespace CRUDTest
             _countryRepositoryMock.Verify(r => r.GetAllCountriesAsync(It.IsAny<CancellationToken>()), Times.Once());
         }
 
-
-        //public async Task<CountryResponse?> GetCountryById(Guid countryId, CancellationToken cancellationToken = default)
-        //{
-        //    Country? country = await _countryRepository.GetCountryByIdAsync(countryId, cancellationToken);
-        //    if (country == null)
-        //    {
-        //        return null;
-        //    }
-        //    CountryResponse countryResponse = _mapper.Map<CountryResponse>(country);
-        //    return countryResponse;
-        //}
-        [Fact]
+        #endregion
+        #region GetCountryById Tests
         public async Task GetCountryById_WhenCountryNotFound_ShouldThrowArgumentException()
         {
             // Arrange
@@ -162,4 +153,5 @@ namespace CRUDTest
             _countryRepositoryMock.Verify(r => r.GetCountryByIdAsync(countryId,It.IsAny<CancellationToken>()), Times.Once());
         }
     }
+    #endregion
 }

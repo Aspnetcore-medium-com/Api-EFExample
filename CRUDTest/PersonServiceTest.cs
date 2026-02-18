@@ -1,10 +1,14 @@
-﻿using AutoMapper;
-using Core.Validator;
+﻿using AutoFixture;
+using AutoFixture.AutoMoq;
+using AutoMapper;
+using Core.Domain.RepositoryContracts;
+using FluentAssertions;
+using FluentAssertions.Execution;
 using FluentValidation;
+using Infra.Repositories;
+using Microsoft.Identity.Client;
 using Moq;
-using ServiceContracts;
 using ServiceContracts.DTO;
-using ServiceContracts.enums;
 using Services;
 using Services.Entities;
 using System;
@@ -12,416 +16,216 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-namespace xunitCRUDTests
+//        public PersonRepository(ApplicationDBContext personDBContext)
+//         public PersonService(IMapper mapper, IPersonRepository personRepository)
+namespace CRUDTest
 {
     public class PersonServiceTest
     {
-        //private readonly IPersonService _personService;
-        //private readonly Mock<IMapper> _mapperMock;
-        //private readonly IValidator<PersonAddRequest> _validator;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly IFixture _fixture;
+        private readonly Mock<IPersonRepository> _personRepositoryMock;
+        private readonly PersonService _sut; //system under test
+        public PersonServiceTest()
+        {
+            //Automatically create mocks for interfaces.
+            _fixture = new Fixture().Customize(new AutoMoqCustomization());
+            // Person Service constructor requires
+            // IMapper and IPersonRepository so Mock them
+            // IMapper mock
+            _mapperMock = _fixture.Freeze<Mock<IMapper>>();
+            // IPerson Repository mock
+            _personRepositoryMock = _fixture.Freeze<Mock<IPersonRepository>>();
+            // Real service object
 
-        //public PersonServiceTest()
-        //{
-        //    _mapperMock = new Mock<IMapper>();
-        //    _validator = new PersonValidator(); // Use real validator
-        //                                        //_validatorMock.Setup(v => v.Validate(It.IsAny<PersonAddRequest>()))
-        //                                        //   .Returns(new FluentValidation.Results.ValidationResult());
-        //    _mapperMock.Setup(m => m.Map<PersonResponse>(It.IsAny<Person>()))
-        //        .Returns((Person source) => new PersonResponse
-        //        {
-        //            PersonName = source.PersonName,
-        //            CountryId = source.CountryId,
-        //            DateOfBirth = source.DateOfBirth,
-        //            Email = source.Email,
-        //            //Gender = source.Gender?.ToString(),
-        //            Address = source.Address,
-        //            ReceiveNewsLetters = source.ReceiveNewsLetters,
-        //            Gender = Enum.TryParse<GenderOptions>(source.Gender, out var g) ? g : null,
-        //            PersonId = source.PersonId
+            // Fix circular reference issue
+            _fixture.Behaviors
+                .OfType<ThrowingRecursionBehavior>()
+                .ToList()
+                .ForEach(b => _fixture.Behaviors.Remove(b));
 
-        //        });
+            _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+            _sut = _fixture.Create<PersonService>();
 
-        //    _mapperMock.Setup(m => m.Map<Person>(It.IsAny<PersonAddRequest>()))
-        //        .Returns((PersonAddRequest source) => new Person
-        //        {
-        //            PersonName = source.PersonName,
-        //            Address = source.Address,
-        //            CountryId = source.CountryId,
-        //            DateOfBirth = source.DateOfBirth,
-        //            Email = source.Email,
-        //            Gender = source.Gender.ToString(),
-        //            ReceiveNewsLetters = source.ReceiveNewsLetters
-
-        //        });
-
-        //    _personService = new PersonService(_mapperMock.Object, _validator);
-
-        //}
-
-        //#region AddPerson Tests
-        //[Fact]
-        //public async Task AddPerson_NullPersonAddRequest_ThrowsArgumentNullException()
-        //{
-        //    // Arrange
-        //    PersonAddRequest? personAddRequest = null;
-        //    // Act & Assert
-        //    await Assert.ThrowsAsync<ArgumentNullException>(async () =>
-        //    {
-        //        await _personService.AddPerson(personAddRequest);
-        //    });
-        //}
-
-        //[Fact]
-        ////when personname is null or empty, then AddPerson should throw ArgumentException   
-        //public async Task AddPerson_EmptyPersonName_ThrowsArgumentException()
-        //{
-        //    // Arrange
-        //    PersonAddRequest personAddRequest = new PersonAddRequest
-        //    {
-        //        PersonName = string.Empty
-        //    };
-        //    // Act & Assert
-        //    await Assert.ThrowsAsync<ArgumentException>(async () =>
-        //    {
-        //        await _personService.AddPerson(personAddRequest);
-        //    });
-        //}
-
-        //[Fact]
-        ////when personname is not empty, then AddPerson should return PersonResponse object
-        //public async Task AddPerson_ValidPersonAddRequest_ReturnsPersonResponse()
-        //{
-        //    // Arrange
-        //    PersonAddRequest personAddRequest = new PersonAddRequest
-        //    {
-        //        PersonName = "John Doe"
-        //    };
-        //    // Act
-        //    PersonResponse result = await _personService.AddPerson(personAddRequest);
-        //    // Assert
-        //    Assert.NotNull(result);
-        //}
-
-        //#endregion
-
-        //#region Get person by id tests
-        //[Fact]
-        //// when personId is found, then GetPersonById should return PersonResponse object
-        //public async Task GetPersonById_PersonIdFound_ReturnsPersonResponse()
-        //{
-        //    // Arrange
-        //    PersonAddRequest personAddRequest = new PersonAddRequest
-        //    {
-        //        PersonName = "John Doe"
-        //    };
-        //    PersonResponse addedPerson = await _personService.AddPerson(personAddRequest);
-        //    // Act
-        //    PersonResponse result = await _personService.GetPersonById(addedPerson.PersonId);
-        //    // Assert
-        //    Assert.NotNull(result);
-        //    Assert.Equal(addedPerson.PersonId, result.PersonId);
-        //}
-
-        //// when personId is not found, then GetPersonById should return null
-        //[Fact]
-        //public async Task GetPersonById_PersonIdNotFound_ReturnsNull()
-        //{
-        //    // Arrange
-        //    Guid nonExistentPersonId = Guid.NewGuid();
-
-        //    // Assert
-        //    await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-        //    {
-        //        // Act
-        //        PersonResponse result = await _personService.GetPersonById(nonExistentPersonId);
-        //    });
-        //}
-
-        //#endregion
-        //#region GetAllPersons Tests
-        //[Fact]
-        //// when there are no persons, then GetAllPersons should return empty list
-        //public async Task GetAllPersons_NoPersons_ReturnsEmptyList()
-        //{
-        //    // Act
-        //    List<PersonResponse> result = await _personService.GetAllPersons();
-        //    // Assert
-        //    Assert.NotNull(result);
-        //    Assert.Empty(result);
-        //}
-
-        //[Fact]
-        //// when there are persons, then GetAllPersons should return list of PersonResponse objects
-        //public async Task GetAllPersons_PersonsExist_ReturnsListOfPersonResponse()
-        //{
-        //    // Arrange
-        //    PersonAddRequest personAddRequest1 = new PersonAddRequest
-        //    {
-        //        PersonName = "John Doe"
-        //    };
-        //    PersonAddRequest personAddRequest2 = new PersonAddRequest
-        //    {
-        //        PersonName = "Jane Smith"
-        //    };
-        //    await _personService.AddPerson(personAddRequest1);
-        //    await _personService.AddPerson(personAddRequest2);
-        //    // Act
-        //    List<PersonResponse> result = await _personService.GetAllPersons();
-        //    // Assert
-        //    Assert.NotNull(result);
-        //    Assert.Equal(2, result.Count);
-        //}
-        //#endregion
-
-        //#region GetPersonsBy Tests
-        //[Fact]
-        //// when searchString is null or empty, then GetPersonsBy should return empty list
-        //public async Task GetPersonsBy_EmptySearchString_ReturnsEmptyList()
-        //{
-        //    // Arrange
-        //    string searchString = string.Empty;
-        //    string columnName = "PersonName";
-        //    // Act
-        //    List<PersonResponse> result = await _personService.GetPersonsBy(searchString, columnName);
-        //    // Assert
-        //    Assert.NotNull(result);
-        //    Assert.Empty(result);
-        //}
-        //[Fact]
-        //// when searchString is not empty, then GetPersonsBy should return list of PersonResponse objects that match the search criteria
-        //public async Task GetPersonsBy_ValidSearchString_ReturnsListOfPersonResponse()
-        //{
-        //    // Arrange
-
-        //    await AddTestPersons();
-
-        //    string searchString = "John";
-        //    string columnName = "PersonName";
-        //    // Act
-        //    List<PersonResponse> result = await _personService.GetPersonsBy(searchString, columnName);
-        //    // Assert
-        //    Assert.NotNull(result);
-        //    Assert.Single(result);
-        //    Assert.Equal("John Doe", result[0].PersonName);
-        //}
-
-        //private async Task AddTestPersons()
-        //{
-        //    PersonAddRequest personAddRequest1 = new PersonAddRequest
-        //    {
-        //        PersonName = "John Doe",
-        //        Address = "123 Main St",
-        //        CountryId = Guid.NewGuid(),
-        //        DateOfBirth = new DateTime(1990, 1, 1),
-        //        Email = "ename@example.com",
-        //        Gender = GenderOptions.Female,
-        //        ReceiveNewsLetters = true
-
-        //    };
-        //    PersonAddRequest personAddRequest2 = new PersonAddRequest
-        //    {
-        //        PersonName = "Jane Smith",
-        //        Address = "5 Main St",
-        //        CountryId = Guid.NewGuid(),
-        //        DateOfBirth = new DateTime(2000, 1, 1),
-        //        Email = "ename1@example.com",
-        //        Gender = GenderOptions.Male,
-        //        ReceiveNewsLetters = false
-        //    };
-        //    PersonAddRequest personAddRequest3 = new PersonAddRequest
-        //    {
-        //        PersonName = "zak Smith",
-        //        Address = "8 Main St",
-        //        CountryId = Guid.NewGuid(),
-        //        DateOfBirth = new DateTime(2022, 1, 1),
-        //        Email = "ename1@example.com",
-        //        Gender = GenderOptions.Male,
-        //        ReceiveNewsLetters = false
-        //    };
-        //    await _personService.AddPerson(personAddRequest1);
-        //    await _personService.AddPerson(personAddRequest2);
-        //    await _personService.AddPerson(personAddRequest3);
-        //}
-
-        ////  when searchString is empty, then GetPersonsBy should return list of all PersonResponse objects 
-        //[Fact]
-        //public async Task GetPersonsBy_EmptySearchString_ReturnsAllPersons()
-        //{
-        //    // Arrange
-        //    await AddTestPersons();
-        //    string searchString = string.Empty;
-        //    string columnName = "PersonName";
-        //    // Act
-        //    List<PersonResponse> result = await _personService.GetPersonsBy(searchString, columnName);
-        //    // Assert
-        //    Assert.NotNull(result);
-        //    Assert.Equal(3, result.Count);
+            
+        }
 
 
+        #region AddPerson Tests
+        [Fact]
+        public async Task AddPerson_WhenRequestIsNull_ShouldThrowArgumentException()
+        {
+            //Arrange 
+            PersonAddRequest? personAddRequest = null;
+            //Act
+            Func<Task> act = async () => await _sut.AddPerson(personAddRequest);
+            //Assert
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
 
-        //}
+    
 
-        //#endregion
+        [Fact]
+        public async Task AddPerson_WhenValidRequest_ShouldAddPersonAndReturnPersonResponse()
+        {
+            // Arrange
+            var request = _fixture.Create<PersonAddRequest>();
 
-        //#region sort persons 
-        ////sort persons by name in ascending order, then GetPersonsWithSorting should return list of PersonResponse objects sorted by name in ascending order
-        //[Fact]
-        //public async Task GetPersons_AscendingSorting_AllResult()
-        //{
-        //    // Arrange
-        //    await AddTestPersons();
-        //    SortOptions sortOption = SortOptions.Ascending;
-        //    string columnName = "PersonName";
-        //    // Act
-        //    List<PersonResponse> result = await _personService.GetPersonsWithSorting(columnName, sortOption);
-        //    // Assert
-        //    Assert.NotNull(result);
-        //    Assert.Equal(3, result.Count);
-        //    Assert.Equal("Jane Smith", result[0].PersonName);
+            var PersonEntity = _fixture.Build<Person>()
+                                         .With(p => p.PersonId, Guid.NewGuid())
+                                         .Create();
+            var expectedResponse = _fixture.Create<PersonResponse>();
 
-        //}
-
-        ////sort persons by name in descending order, then GetPersonsWithSorting should return list of PersonResponse objects sorted by name in descending order
-        //[Fact]
-        //public async Task GetPersons_DescendingSorting_AllResult()
-        //{
-        //    // Arrange
-        //    await AddTestPersons();
-        //    SortOptions sortOption = SortOptions.Descending;
-        //    string columnName = "PersonName";
-        //    // Act
-        //    List<PersonResponse> result = await _personService.GetPersonsWithSorting(columnName, sortOption);
-        //    // Assert
-        //    Assert.NotNull(result);
-        //    Assert.Equal(3, result.Count);
-        //    Assert.Equal("zak Smith", result[0].PersonName);
-        //}
-
-        ////update person details, then UpdatePerson should return updated PersonResponse object
-        //[Fact]
-        //public async Task UpdatePerson_ValidPersonUpdateRequest_ReturnsUpdatedPersonResponse()
-        //{
-        //    // Arrange
-        //    PersonAddRequest personAddRequest = new PersonAddRequest
-        //    {
-        //        PersonName = "John Doe",
-        //        Address = "123 ",
-        //        CountryId = Guid.NewGuid(),
-        //        DateOfBirth = new DateTime(1990, 1, 1),
-        //        Email = "milo@example.com",
-        //        Gender = GenderOptions.Male,
-        //        ReceiveNewsLetters = false
-
-        //    };
-        //    PersonResponse addedPerson = await _personService.AddPerson(personAddRequest);
-        //    PersonUpdateRequest personUpdateRequest = new PersonUpdateRequest
-        //    {
-        //        PersonId = addedPerson.PersonId,
-        //        PersonName = "John Doe Updated",
-        //        Address = "123 Updated",
-        //        CountryId = Guid.NewGuid(),
-        //        DateOfBirth = new DateTime(1990, 1, 1),
-        //        Email = "milo@example.com",
-        //        Gender = GenderOptions.Male,
-        //        ReceiveNewsLetters = false
-        //    };
-        //    PersonResponse personResponse = await _personService.UpdatePerson(personUpdateRequest);
-        //    Assert.NotNull(personResponse);
-        //    Assert.Equal("John Doe Updated", personResponse.PersonName);
-
-        //}
-
-        //[Fact]
-        ////update person details with invalid personId, then UpdatePerson should throw KeyNotFoundException
-        //public async Task UpdatePerson_InvalidPersonId_ThrowsKeyNotFoundException()
-        //{
-        //    // Arrange
-        //    PersonUpdateRequest personUpdateRequest = new PersonUpdateRequest
-        //    {
-        //        PersonId = Guid.NewGuid(),
-        //        PersonName = "John Doe Updated",
-        //        Address = "123 Updated",
-        //        CountryId = Guid.NewGuid(),
-        //        DateOfBirth = new DateTime(1990, 1, 1),
-        //        Email = "milo@example.com",
-        //        Gender = GenderOptions.Male,
-        //        ReceiveNewsLetters = false
-
-        //    };
-        //    // Act & Assert
-        //    await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-        //    {
-        //        await _personService.UpdatePerson(personUpdateRequest);
-        //    });
-        //}
-        //#endregion
-
-        //#region delete person tests
-        //[Fact]
-        ////delete person with valid personId, then DeletePerson should return deleted PersonResponse object
-        //public async Task DeletePerson_ValidPersonId_ReturnsDeletedPersonResponse()
-        //{
-        //    // Arrange
-        //    PersonAddRequest personAddRequest = new PersonAddRequest
-        //    {
-        //        PersonName = "John Doe",
-        //        Address = "123 ",
-        //        CountryId = Guid.NewGuid(),
-        //        DateOfBirth = new DateTime(1990, 1, 1),
-        //        Email = "milo@example.com",
-        //        Gender = GenderOptions.Male,
-        //        ReceiveNewsLetters = false
-        //    };
-        //    PersonResponse addedPerson = await _personService.AddPerson(personAddRequest);
-        //    // Act
-        //    PersonResponse deletedPerson = await _personService.DeletePerson(addedPerson.PersonId);
-        //    // Assert
-        //    Assert.NotNull(deletedPerson);
-        //    Assert.Equal(addedPerson.PersonId, deletedPerson.PersonId);
-
-        //}
-
-        //[Fact]
-        ////delete person with invalid personId, then DeletePerson should throw KeyNotFoundException
-        //public async Task DeletePerson_InvalidPersonId_ThrowsKeyNotFoundException()
-        //{
-        //    // Arrange
-        //    Guid nonExistentPersonId = Guid.NewGuid();
-        //    // Act & Assert
-        //    await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-        //    {
-        //        await _personService.DeletePerson(nonExistentPersonId);
-        //    });
-        //}
-
-        //[Fact]
-        ////delete person and then try to get the deleted person, then GetPersonById should throw KeyNotFoundException
-        //public async Task DeletePerson_ThenGetPersonById_ThrowsKeyNotFoundException()
-        //{
-        //    // Arrange
-        //    PersonAddRequest personAddRequest = new PersonAddRequest
-        //    {
-        //        PersonName = "John Doe",
-        //        Address = "123 ",
-        //        CountryId = Guid.NewGuid(),
-        //        DateOfBirth = new DateTime(1990, 1, 1),
-        //        Email = "milo@example.com",
-        //        Gender = GenderOptions.Male,
-        //        ReceiveNewsLetters = false
+            _mapperMock.Setup(m => m.Map<Person>(request)).Returns(PersonEntity);
+            _mapperMock.Setup(m => m.Map<PersonResponse>(It.IsAny<Person>())).Returns(expectedResponse);
+            _personRepositoryMock.Setup(p => p.AddPersonAsync(It.IsAny<Person>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Person p, CancellationToken _) => p);
 
 
-        //    };
-        //    PersonResponse addedPerson = await _personService.AddPerson(personAddRequest);
-        //    await _personService.DeletePerson(addedPerson.PersonId);
-        //    // Act & Assert
-        //    await Assert.ThrowsAsync<KeyNotFoundException>(async () =>
-        //    {
-        //        await _personService.GetPersonById(addedPerson.PersonId);
-        //    });
-        //}
+            // Act
+            var result = await _sut.AddPerson(request,CancellationToken.None);
 
+            // Assert
 
-        //#endregion
+            result.Should().NotBeNull();
+            result.Should().BeEquivalentTo(expectedResponse);
+
+            _personRepositoryMock.Verify(r => r.AddPersonAsync(It.Is<Person>(p => p.PersonId != Guid.Empty),It.IsAny<CancellationToken>()),Times.Once);
+        }
+
+        #endregion
+        #region GetPersonsById Tests
+
+        [Fact]
+        public async Task GetPersonById_WhenInvalidPersonId_ShouldReturnNull()
+        {
+            //Arrange
+            Guid personId = Guid.NewGuid();
+            _personRepositoryMock.Setup(r => r.GetPersonByIdAsync(personId, It.IsAny<CancellationToken>())).ReturnsAsync((Person?)null);
+
+            //Act
+            var result = await _sut.GetPersonById(personId, CancellationToken.None);
+
+            //Assert
+            result.Should().BeNull();
+        }
+        #endregion
+        #region DeletePerson Tests
+        [Fact]
+        public async Task DeletePerson_WhenPersonNotFound_ShouldThrowKeyNotFoundException()
+        {
+            // Arrange
+            Guid personId = Guid.NewGuid();
+            _personRepositoryMock.Setup(p => p.GetPersonByIdAsync(personId,It.IsAny<CancellationToken>())).ReturnsAsync((Person?)null);
+
+            //Act
+            Func<Task> act = async () => await _sut.DeletePerson(personId, CancellationToken.None);
+
+            // Assert
+            await act.Should().ThrowAsync<KeyNotFoundException>();
+
+        }
+
+        [Fact]
+        public async Task DeletePerson_WhenPersonIsValid_ShouldDeletePersonAndReturnTrue()
+        {
+            // Arrange
+            Guid personId = Guid.NewGuid();
+            var person = _fixture.Build<Person>()
+                .With(p => p.PersonId, personId)
+                .Create();
+            _personRepositoryMock.Setup(p => p.GetPersonByIdAsync(personId,It.IsAny<CancellationToken>())).ReturnsAsync(person);
+
+            _personRepositoryMock.Setup(r => r.DeletePersonAsync(personId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+            // Act
+            var act = await _sut.DeletePerson(personId,CancellationToken.None);
+
+            // Assert
+            act.Should().BeTrue();
+            
+            _personRepositoryMock.Verify(r => r.DeletePersonAsync(personId, It.IsAny<CancellationToken>()), Times.Once());
+        }
+        #endregion
+        #region GetAllPersons tests
+        [Fact]
+        public async Task GetAllPersons_ShouldReturnMappedPersonResponse()
+        {
+            //Arrange
+            var persons = new List<Person>()
+            {
+                new Person { PersonId = Guid.NewGuid() , PersonName = "AAA"},
+                new Person { PersonId = Guid.NewGuid(), PersonName = "BBB" }
+            };
+
+            var expectedPersons = new List<PersonResponse>()
+            {
+                new PersonResponse { PersonId = persons[0].PersonId,  PersonName = persons[0].PersonName },
+                new PersonResponse { PersonId = persons[1].PersonId , PersonName = persons[1].PersonName }
+            };
+
+            _personRepositoryMock.Setup(r => r.GetAllPersonsAsync(It.IsAny<CancellationToken>())).ReturnsAsync(persons);
+
+            _mapperMock.Setup(m => m.Map<List<PersonResponse>>(persons)).Returns(expectedPersons);
+            //Act
+            var act = await _sut.GetAllPersons(It.IsAny<CancellationToken>());
+
+            //Assert
+            act.Should().BeEquivalentTo(expectedPersons);
+
+            _personRepositoryMock.Verify(r => r.GetAllPersonsAsync(It.IsAny<CancellationToken>()), Times.Once());
+        }
+
+        #endregion
+        #region update person tests
+        [Fact]
+        public async Task UpdatePerson_WhenNullPersonUpdateRequest_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            PersonUpdateRequest? personUpdateRequest = null;
+
+            // Act
+            Func<Task> act = async () => await _sut.UpdatePerson(personUpdateRequest!,CancellationToken.None);
+
+            // Assert
+            await act.Should().ThrowAsync<ArgumentNullException>();
+        }
+
+        [Fact]
+        public async Task UpdatePerson_WhenGetPersonByIdAsyncReturnsNull_ShouldThrowKeyNotFoundException()
+        {
+            // Arrange
+            PersonUpdateRequest personUpdateRequest = _fixture.Build<PersonUpdateRequest>()
+                .With(p => p.PersonId, Guid.NewGuid())
+                .Create();
+            _personRepositoryMock.Setup(r => r.GetPersonByIdAsync(personUpdateRequest.PersonId, It.IsAny<CancellationToken>())).ReturnsAsync((Person?)null);
+            // Act
+            Func<Task> act = async () =>  await _sut.UpdatePerson(personUpdateRequest,CancellationToken.None);
+            // Assert
+            await act.Should().ThrowAsync<KeyNotFoundException>();
+
+            _personRepositoryMock.Verify(r => r.GetPersonByIdAsync(personUpdateRequest.PersonId, It.IsAny<CancellationToken>()), Times.Once());
+        }
+
+     
+
+        [Fact]
+        public async Task UpdatePerson_WhenValidPersonUpdateRequest_ShouldReturnPersonResponse()
+        {
+            // Arrange
+            PersonUpdateRequest personUpdateRequest = _fixture.Build< PersonUpdateRequest>().With(p => p.PersonId, Guid.NewGuid())
+                .Create();
+            var personInDB = _fixture.Build<Person>().With(p => p.PersonId, personUpdateRequest.PersonId).Create();
+            var expectedResponse = _fixture.Create<PersonResponse>();
+
+            _personRepositoryMock.Setup(r => r.GetPersonByIdAsync(personUpdateRequest.PersonId, It.IsAny<CancellationToken>())).ReturnsAsync(personInDB);
+            _personRepositoryMock.Setup(r => r.UpdatePersonAsync(personInDB, It.IsAny<CancellationToken>())).ReturnsAsync(personInDB);
+            _mapperMock.Setup(m => m.Map<PersonResponse>(personInDB)).Returns(expectedResponse);
+            // Act
+            var act = await _sut.UpdatePerson(personUpdateRequest, CancellationToken.None);
+            // Assert
+            act.Should().BeEquivalentTo(expectedResponse);
+            _personRepositoryMock.Verify(p => p.UpdatePersonAsync(personInDB,It.IsAny<CancellationToken>()), Times.Once());
+        }
+        #endregion
     }
 }
