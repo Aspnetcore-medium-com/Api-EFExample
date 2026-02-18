@@ -18,15 +18,15 @@ using System.Text;
 using System.Threading.Tasks;
 //        public PersonRepository(ApplicationDBContext personDBContext)
 //         public PersonService(IMapper mapper, IPersonRepository personRepository)
-namespace CRUDTest
+namespace CRUDTest.Services
 {
-    public class PersonServiceTest
+    public class PersonServiceTests
     {
         private readonly Mock<IMapper> _mapperMock;
         private readonly IFixture _fixture;
         private readonly Mock<IPersonRepository> _personRepositoryMock;
         private readonly PersonService _sut; //system under test
-        public PersonServiceTest()
+        public PersonServiceTests()
         {
             //Automatically create mocks for interfaces.
             _fixture = new Fixture().Customize(new AutoMoqCustomization());
