@@ -1,11 +1,13 @@
 ﻿using Api_EFExample.Controllers;
 using AutoFixture;
 using AutoFixture.AutoMoq;
+using Castle.Core.Logging;
 using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using ServiceContracts;
 using ServiceContracts.DTO;
@@ -22,11 +24,13 @@ namespace CRUDTest.Controllers
     {
         private readonly Mock<IPersonService> _personServiceMock;
         private readonly Mock<IValidator<PersonAddRequest>> _validatorMock;
+        private readonly Mock<ILogger<PersonController>> _loggerMock;
         private readonly PersonController _sut ;
         public PersonControllerTests() {
             _personServiceMock = new Mock<IPersonService>();
             _validatorMock = new Mock<IValidator<PersonAddRequest>>();
-            _sut = new PersonController(_personServiceMock.Object,_validatorMock.Object);
+            _loggerMock = new Mock<ILogger<PersonController>>();
+            _sut = new PersonController(_personServiceMock.Object,_validatorMock.Object,_loggerMock.Object);
         }
 
       
@@ -110,11 +114,7 @@ namespace CRUDTest.Controllers
             problemDetails!.Title.Should().Be("Person not found");
         }
 
-        //public async Task<ActionResult<PersonResponse>> Add(PersonAddRequest personAddRequest, CancellationToken cancellationToken = default)
-        //{
-        //    PersonResponse personResponse = await _personService.AddPerson(personAddRequest, cancellationToken);
-        //    return CreatedAtAction(nameof(GetById), new { personId = personResponse.PersonId }, personResponse);
-        //}
+       
 
         [Fact]
         public async Task Add_WhenValidRequest_ShouldReturnCreatedAtAction()

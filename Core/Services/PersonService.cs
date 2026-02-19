@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using Castle.Core.Logging;
 using Core.Domain.RepositoryContracts;
+using Microsoft.Extensions.Logging;
 using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.enums;
@@ -16,11 +18,12 @@ namespace Services
     {
         private readonly IMapper _mapper;
         private readonly IPersonRepository _personRepository;
-
-        public PersonService(IMapper mapper, IPersonRepository personRepository)
+        private readonly ILogger<PersonService> _logger;
+        public PersonService(IMapper mapper, IPersonRepository personRepository, ILogger<PersonService> logger)
         {
             _mapper = mapper;
             _personRepository = personRepository;
+            _logger = logger;
         }
         public async Task<PersonResponse> AddPerson(PersonAddRequest? personAddRequest,CancellationToken cancellationToken = default)
         {
@@ -70,6 +73,8 @@ namespace Services
 
         public async Task<PersonResponse?> GetPersonById(Guid personId, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation($"{nameof(GetPersonById)} called");
+            _logger.LogDebug($"{personId} is passed");
             var person = await _personRepository.GetPersonByIdAsync(personId,cancellationToken);
             if (person == null)
             {

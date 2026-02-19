@@ -1,5 +1,6 @@
 ﻿using Core.Domain.RepositoryContracts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Services;
 using Services.Entities;
 using System;
@@ -12,10 +13,12 @@ namespace Infra.Repositories
     public class PersonRepository : IPersonRepository
     {
         private readonly ApplicationDBContext _personDBContext;
+        private readonly ILogger<PersonRepository> _logger;
 
-        public PersonRepository(ApplicationDBContext personDBContext)
+        public PersonRepository(ApplicationDBContext personDBContext, ILogger<PersonRepository> logger)
         {
             _personDBContext = personDBContext;
+            _logger = logger;
         }
 
         public async Task<Person?> AddPersonAsync(Person person, CancellationToken cancellationToken = default)
@@ -60,6 +63,9 @@ namespace Infra.Repositories
 
         public async Task<Person?> GetPersonByIdAsync(Guid personId, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation($"{nameof(GetPersonByIdAsync)} called");
+            _logger.LogDebug($"{personId} passed");
+
             return await _personDBContext.Persons.Include(p => p.Country).AsNoTracking().FirstOrDefaultAsync(p => p.PersonId == personId, cancellationToken);
         }
 

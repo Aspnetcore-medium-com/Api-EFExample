@@ -15,10 +15,12 @@ namespace Api_EFExample.Controllers
     {
         private readonly IPersonService _personService;
         private readonly IValidator<PersonAddRequest> _validator;
-        public PersonController(IPersonService personService,IValidator<PersonAddRequest> validator)
+        private readonly ILogger<PersonController> _logger;
+        public PersonController(IPersonService personService,IValidator<PersonAddRequest> validator, ILogger<PersonController> logger)
         {
             _personService = personService;
             _validator = validator;
+            _logger = logger;
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PersonResponse>>> GetAll(CancellationToken cancellationToken = default)
@@ -30,6 +32,8 @@ namespace Api_EFExample.Controllers
         [HttpGet("{personId:guid}")]
         public async Task<ActionResult<PersonResponse>> GetById(Guid personId, CancellationToken cancellationToken = default)
         {
+            _logger.LogInformation($"{nameof(GetById)} called");
+            _logger.LogDebug($"{personId} passed for {nameof(GetById)}");
             PersonResponse? personResponse = await _personService.GetPersonById(personId,cancellationToken);
             if (personResponse == null)
             {
