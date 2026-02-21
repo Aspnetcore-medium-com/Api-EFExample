@@ -6,7 +6,8 @@ using AutoMapper;
 using Infra;
 using Services.Seeders;
 using Core;
-
+using Microsoft.AspNetCore.HttpLogging;
+using Serilog;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -20,6 +21,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddValidatorsFromAssemblyContaining<PersonAddValidator>();
 builder.Services.AddCore().AddInfra(builder.Configuration);
+builder.Services.AddHttpLogging(options =>{});
+
+builder.Host.UseSerilog((context, services, configuration) =>
+{
+    configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services);
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -27,6 +36,8 @@ if (!app.Environment.IsEnvironment("Testing"))
 {
     await DbSeeder.Seed(app.Services);
 }
+app.UseHttpLogging();
+app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 
 app.UseAuthorization();

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.Extensions.Logging;
 using ServiceContracts.DTO;
 using ServiceContracts.enums;
 using Services.Entities;
@@ -14,7 +15,6 @@ namespace Core.Mapper
     {
         public PersonMappingProfile()
         {
-            Console.WriteLine("=== PersonMappingProfile constructor called ===");
 
             CreateMap<ServiceContracts.DTO.PersonAddRequest, Person>()
                 .ForMember(dest => dest.PersonId, opt => opt.Ignore())
@@ -23,8 +23,6 @@ namespace Core.Mapper
             CreateMap<Person, ServiceContracts.DTO.PersonResponse>()
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.Gender) ? (GenderOptions?)null : Enum.Parse<GenderOptions>(src.Gender)))
                 .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country != null ? src.Country.CountryName : null));
-
-            Console.WriteLine("=== Mapping configured: Person -> PersonResponse with CountryName ===");
 
 
         }

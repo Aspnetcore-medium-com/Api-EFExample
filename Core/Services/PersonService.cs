@@ -2,6 +2,8 @@
 using Castle.Core.Logging;
 using Core.Domain.RepositoryContracts;
 using Microsoft.Extensions.Logging;
+using Serilog;
+using SerilogTimings;
 using ServiceContracts;
 using ServiceContracts.DTO;
 using ServiceContracts.enums;
@@ -19,11 +21,13 @@ namespace Services
         private readonly IMapper _mapper;
         private readonly IPersonRepository _personRepository;
         private readonly ILogger<PersonService> _logger;
-        public PersonService(IMapper mapper, IPersonRepository personRepository, ILogger<PersonService> logger)
+        private readonly IDiagnosticContext _diagnosticContext;
+        public PersonService(IMapper mapper, IPersonRepository personRepository, ILogger<PersonService> logger,IDiagnosticContext diagnosticContext)
         {
             _mapper = mapper;
             _personRepository = personRepository;
             _logger = logger;
+            _diagnosticContext = diagnosticContext;
         }
         public async Task<PersonResponse> AddPerson(PersonAddRequest? personAddRequest,CancellationToken cancellationToken = default)
         {
@@ -55,19 +59,23 @@ namespace Services
 
         public async Task<IReadOnlyList<PersonResponse>> GetAllPersons(CancellationToken cancellationToken = default)
         {
+            List<PersonResponse> personResponses;
             var persons = await _personRepository.GetAllPersonsAsync(cancellationToken);
-           
-            try
+            using (Operation.Time("Time for filtered persons from database"))
             {
-                _mapper.ConfigurationProvider.AssertConfigurationIsValid();
-                Console.WriteLine("AutoMapper configuration is VALID");
+
+                try
+                {
+                    _mapper.ConfigurationProvider.AssertConfigurationIsValid();
+                    Console.WriteLine("AutoMapper configuration is VALID");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"AutoMapper configuration ERROR: {ex.Message}");
+                }
+                personResponses = _mapper.Map<List<PersonResponse>>(persons);
+                _diagnosticContext.Set("persons", persons, destructureObjects: true);
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"AutoMapper configuration ERROR: {ex.Message}");
-            }
-            List<PersonResponse> personResponses = _mapper.Map<List<PersonResponse>>(persons);
-           
             return personResponses;
         }
 
