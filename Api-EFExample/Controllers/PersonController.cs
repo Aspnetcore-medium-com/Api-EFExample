@@ -12,6 +12,7 @@ namespace Api_EFExample.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+
     public class PersonController : ControllerBase
     {
         private readonly IPersonService _personService;
@@ -24,7 +25,7 @@ namespace Api_EFExample.Controllers
             _logger = logger;
         }
         [HttpGet]
-        [TypeFilter(typeof(ResponseHeaderFilter), Arguments = new Object[] { "x-custom-key", "customvalue" })]
+        //[TypeFilter(typeof(ResponseHeaderFilter))]
         public async Task<ActionResult<IEnumerable<PersonResponse>>> GetAll(CancellationToken cancellationToken = default)
         {
            var persons = await _personService.GetAllPersons(cancellationToken);

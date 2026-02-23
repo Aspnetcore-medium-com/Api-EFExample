@@ -1,4 +1,5 @@
 using Api_EFExample.Filters.Actions;
+using Api_EFExample.Options;
 using AutoMapper;
 using Core;
 using Core.Mapper;
@@ -18,8 +19,13 @@ var builder = WebApplication.CreateBuilder(args);
 //builder.Logging.AddDebug();
 
 // Add services to the container.
+builder.Services.Configure<HeaderOptions>(builder.Configuration.GetSection("CustomHeaders"));
+builder.Services.AddScoped(typeof(ResponseHeaderFilter));
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.AddService<ResponseHeaderFilter>();
+});
 builder.Services.AddValidatorsFromAssemblyContaining<PersonAddValidator>();
 builder.Services.AddCore().AddInfra(builder.Configuration);
 builder.Services.AddHttpLogging(options =>{});
@@ -30,7 +36,6 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services);
 });
-builder.Services.AddScoped(typeof(ValidationFilter<>));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
