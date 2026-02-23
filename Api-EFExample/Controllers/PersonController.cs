@@ -1,4 +1,5 @@
-﻿using Core.Validator;
+﻿using Api_EFExample.Filters.Actions;
+using Core.Validator;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -23,6 +24,7 @@ namespace Api_EFExample.Controllers
             _logger = logger;
         }
         [HttpGet]
+        [TypeFilter(typeof(ResponseHeaderFilter), Arguments = new Object[] { "x-custom-key", "customvalue" })]
         public async Task<ActionResult<IEnumerable<PersonResponse>>> GetAll(CancellationToken cancellationToken = default)
         {
            var persons = await _personService.GetAllPersons(cancellationToken);
@@ -62,14 +64,15 @@ namespace Api_EFExample.Controllers
         }
 
         [HttpPost]
+        [ServiceFilter(typeof(ValidationFilter<PersonAddRequest>))]
         public async Task<ActionResult<PersonResponse>> Add(PersonAddRequest personAddRequest, CancellationToken cancellationToken = default)
         {
-            var result = await _validator.ValidateAsync(personAddRequest);
-            if (!result.IsValid)
-                return BadRequest(result.Errors.Select(e => new {
-                    e.PropertyName,
-                    e.ErrorMessage
-                }));
+            //var result = await _validator.ValidateAsync(personAddRequest);
+            //if (!result.IsValid)
+            //    return BadRequest(result.Errors.Select(e => new {
+            //        e.PropertyName,
+            //        e.ErrorMessage
+            //    }));
             PersonResponse personResponse = await _personService.AddPerson(personAddRequest, cancellationToken);
             return CreatedAtAction(nameof(GetById),new {personId = personResponse.PersonId},personResponse);
         }

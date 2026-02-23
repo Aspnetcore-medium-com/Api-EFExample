@@ -1,13 +1,14 @@
+using Api_EFExample.Filters.Actions;
+using AutoMapper;
+using Core;
 using Core.Mapper;
 using Core.Validator;
 using FluentValidation;
-using Microsoft.Extensions.DependencyInjection;
-using AutoMapper;
 using Infra;
-using Services.Seeders;
-using Core;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Services.Seeders;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -29,6 +30,7 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services);
 });
+builder.Services.AddScoped(typeof(ValidationFilter<>));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
