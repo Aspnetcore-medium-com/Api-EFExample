@@ -1,4 +1,5 @@
 using Api_EFExample.Filters.Actions;
+using Api_EFExample.Middleware;
 using Api_EFExample.Options;
 using AutoMapper;
 using Core;
@@ -43,6 +44,12 @@ if (!app.Environment.IsEnvironment("Testing"))
 {
     await DbSeeder.Seed(app.Services);
 }
+//if (app.Environment.IsDevelopment())
+//{
+    //app.UseDeveloperExceptionPage();
+    app.UseExceptionHandlingMiddleware();
+//}
+
 app.UseHttpLogging();
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();

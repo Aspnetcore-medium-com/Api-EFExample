@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CRUDTest", "CRUDTest\CRUDTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CRUDTest.Integration", "CRUDTest.Integration\CRUDTest.Integration.csproj", "{26F96AF2-200B-417E-BCC8-972D96752881}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Exceptions", "Exceptions\Exceptions.csproj", "{6A492348-4625-4B64-B023-EF73CE65FE61}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{26F96AF2-200B-417E-BCC8-972D96752881}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26F96AF2-200B-417E-BCC8-972D96752881}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26F96AF2-200B-417E-BCC8-972D96752881}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A492348-4625-4B64-B023-EF73CE65FE61}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A492348-4625-4B64-B023-EF73CE65FE61}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A492348-4625-4B64-B023-EF73CE65FE61}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A492348-4625-4B64-B023-EF73CE65FE61}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

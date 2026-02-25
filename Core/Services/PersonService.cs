@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Castle.Core.Logging;
 using Core.Domain.RepositoryContracts;
+using Exceptions;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using SerilogTimings;
@@ -118,7 +119,7 @@ namespace Services
             var personToUpdate = await _personRepository.GetPersonByIdAsync(personUpdateRequest.PersonId, cancellationToken);
             if (personToUpdate == null)
             {
-                throw new KeyNotFoundException($"Person with ID {personUpdateRequest.PersonId} not found.");
+                throw new PersonNotFoundException($"Person with ID {personUpdateRequest.PersonId} not found.");
             }
            
             _mapper.Map(personUpdateRequest, personToUpdate);
