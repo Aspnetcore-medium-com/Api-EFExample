@@ -3,13 +3,17 @@ using Api_EFExample.Middleware;
 using Api_EFExample.Options;
 using AutoMapper;
 using Core;
+using Core.Domain.IdentityEntities;
 using Core.Mapper;
 using Core.Validator;
 using FluentValidation;
 using Infra;
 using Microsoft.AspNetCore.HttpLogging;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
+using Services;
 using Services.Seeders;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +41,11 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services);
 });
+builder.Services.AddIdentity<ApplicationUser, ApplicationUserRole>()
+    .AddEntityFrameworkStores<ApplicationDBContext>()
+    .AddDefaultTokenProviders()
+    .AddUserStore<UserStore<ApplicationUser, ApplicationUserRole, ApplicationDBContext, Guid>>()
+    .AddRoleStore<RoleStore<ApplicationUserRole, ApplicationDBContext, Guid>>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

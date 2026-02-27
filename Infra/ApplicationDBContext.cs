@@ -1,4 +1,7 @@
-﻿using Entities;
+﻿using Core.Domain.IdentityEntities;
+using Entities;
+using Microsoft.AspNet.Identity.EntityFramework;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Services.Entities;
@@ -10,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Services
 {
-    public class ApplicationDBContext : DbContext
+    public class ApplicationDBContext : IdentityDbContext<ApplicationUser,ApplicationUserRole,Guid>
     {
         public DbSet<Person> Persons { get; set; }
         public DbSet<Country> Countries { get; set; }

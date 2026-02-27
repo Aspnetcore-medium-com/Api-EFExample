@@ -12,6 +12,6 @@ namespace Exceptions
 
         public PersonNotFoundException(string message) : base(message) { }
 
-        public PersonNotFoundException(string message, Exception innerException) : base(message, innerException) { };
+        public PersonNotFoundException(string message, Exception innerException) : base(message, innerException) { }
     }
 }
