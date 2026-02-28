@@ -1,4 +1,6 @@
 ﻿using Core.DTO;
+using Core.ServiceContracts.Auth;
+using Core.Services.Auth;
 using FluentValidation;
 using System;
 using System.Collections.Generic;
@@ -8,14 +10,15 @@ using System.Threading.Tasks;
 
 namespace Core.Validator
 {
-    public class RegisterValidator: AbstractValidator<RegisterDTO>
+    public class RegisterRequestValidator: AbstractValidator<RegisterRequest>
     {
-        public RegisterValidator() { 
+        public RegisterRequestValidator(IAuthService auth) { 
             RuleFor(r => r.PersonName)
                 .NotEmpty().WithMessage("Person Name is required.")
                 .MaximumLength(100).WithMessage("Person Name cannot exceed 100 characters.");
             RuleFor(r => r.Email)
                 .NotEmpty().WithMessage("Email is required.")
+                .MustAsync(async (email,CancellationToken) => !await auth.EmailExists(email)).WithMessage("Email already taken")
                 .EmailAddress().WithMessage("Invalid email format.");
             RuleFor(r => r.Password)
                 .NotEmpty().WithMessage("Password is required.")

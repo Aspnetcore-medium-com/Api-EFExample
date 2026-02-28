@@ -12,7 +12,7 @@ namespace Core.DTO
     /// <remarks>This data transfer object is typically used to collect and validate user input during the
     /// registration process. All properties should be populated with valid values before submitting to a registration
     /// endpoint.</remarks>
-    public class RegisterDTO
+    public class RegisterRequest
     {
         public string PersonName { get; set; } = default!;
         public string Email { get; set; } = default!;
@@ -20,6 +20,6 @@ namespace Core.DTO
 
         public string PhoneNumber { get; set; } = default!;
 
-        public string ConfirmPassword { get; set; } = default!  
+        public string ConfirmPassword { get; set; } = default!;  
     }
 }

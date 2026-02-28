@@ -26,12 +26,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.Configure<HeaderOptions>(builder.Configuration.GetSection("CustomHeaders"));
 builder.Services.AddScoped(typeof(ResponseHeaderFilter));
-
+builder.Services.AddScoped(typeof(ValidationFilter<>));
 builder.Services.AddControllers(options =>
 {
     options.Filters.AddService<ResponseHeaderFilter>();
 });
-builder.Services.AddValidatorsFromAssemblyContaining<PersonAddValidator>();
+builder.Services.AddValidatorsFromAssemblyContaining<PersonAddRequestValidator>();
 builder.Services.AddCore().AddInfra(builder.Configuration);
 builder.Services.AddHttpLogging(options =>{});
 
@@ -41,7 +41,12 @@ builder.Host.UseSerilog((context, services, configuration) =>
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services);
 });
-builder.Services.AddIdentity<ApplicationUser, ApplicationUserRole>()
+builder.Services.AddIdentity<ApplicationUser, ApplicationUserRole>( options =>
+{
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 3;
+    options.Password.RequireDigit = false;
+})
     .AddEntityFrameworkStores<ApplicationDBContext>()
     .AddDefaultTokenProviders()
     .AddUserStore<UserStore<ApplicationUser, ApplicationUserRole, ApplicationDBContext, Guid>>()
@@ -53,16 +58,14 @@ if (!app.Environment.IsEnvironment("Testing"))
 {
     await DbSeeder.Seed(app.Services);
 }
-//if (app.Environment.IsDevelopment())
-//{
-    //app.UseDeveloperExceptionPage();
-    app.UseExceptionHandlingMiddleware();
-//}
-
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
 app.UseHttpLogging();
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

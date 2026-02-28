@@ -1,4 +1,6 @@
 ﻿using Core.Mapper;
+using Core.ServiceContracts.Auth;
+using Core.Services.Auth;
 using Core.Validator;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +27,9 @@ namespace Core
 
             services.AddTransient<IPersonService,PersonService>();
             services.AddTransient<ICountryService,CountryService>();
-            services.AddValidatorsFromAssemblyContaining<PersonAddValidator>();
+            services.AddValidatorsFromAssemblyContaining<PersonAddRequestValidator>();
+
+            services.AddTransient<IAuthService, AuthService>();
             return services;
         }
     }

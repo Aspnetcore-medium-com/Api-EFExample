@@ -16,11 +16,11 @@ namespace Core.Mapper
         public PersonMappingProfile()
         {
 
-            CreateMap<ServiceContracts.DTO.PersonAddRequest, Person>()
+            CreateMap<PersonAddRequest, Person>()
                 .ForMember(dest => dest.PersonId, opt => opt.Ignore())
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => src.Gender.HasValue ? src.Gender.Value.ToString() : null));
 
-            CreateMap<Person, ServiceContracts.DTO.PersonResponse>()
+            CreateMap<Person, PersonResponse>()
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(src => string.IsNullOrEmpty(src.Gender) ? (GenderOptions?)null : Enum.Parse<GenderOptions>(src.Gender)))
                 .ForMember(dest => dest.CountryName, opt => opt.MapFrom(src => src.Country != null ? src.Country.CountryName : null));
 

@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ServiceContracts.DTO;
 using Services.Entities;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace Core.Mapper
     {
         public PersonUpdateMappingProfile()
         {
-            CreateMap<ServiceContracts.DTO.PersonUpdateRequest, Person>();
+            CreateMap<PersonUpdateRequest, Person>();
         }
     }
 }

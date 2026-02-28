@@ -18,7 +18,7 @@ namespace Api_EFExample.Filters.Actions
 
         public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
         {
-            if (context.Controller is PersonController personController)
+            //if (context.Controller is PersonController personController)
             {
                 // ActionArguments.Values is ICollection<object> 
                 // This safely casts the object to type T
