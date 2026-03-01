@@ -17,7 +17,7 @@ namespace Core.ServiceContracts.Auth
         /// Cannot be <c>null</c>.</param>
         /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="IdentityResult"/>
         /// indicating whether the registration succeeded and any associated errors.</returns>
-        Task<IdentityResult> RegisterUser(RegisterRequest registerDTO);
+        Task<SignInResponse?> RegisterUser(RegisterRequest registerDTO);
         /// <summary>
         /// Determines whether a user account with the specified email address exists.
         /// </summary>
@@ -26,6 +26,8 @@ namespace Core.ServiceContracts.Auth
         /// with the specified email exists; otherwise, <see langword="false"/>.</returns>
         Task<bool> EmailExists(string email);
 
+        Task<SignInResponse?> SignInWithPassword(LoginRequest loginRequest);
 
+        Task SignOut();
     }
 }

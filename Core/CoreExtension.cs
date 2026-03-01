@@ -1,4 +1,5 @@
 ﻿using Core.Mapper;
+using Core.ServiceContracts;
 using Core.ServiceContracts.Auth;
 using Core.Services.Auth;
 using Core.Validator;
@@ -28,7 +29,6 @@ namespace Core
             services.AddTransient<IPersonService,PersonService>();
             services.AddTransient<ICountryService,CountryService>();
             services.AddValidatorsFromAssemblyContaining<PersonAddRequestValidator>();
-
             services.AddTransient<IAuthService, AuthService>();
             return services;
         }

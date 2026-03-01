@@ -1,6 +1,7 @@
 ﻿using Api_EFExample.Filters.Actions;
 using Core.Validator;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceContracts;
@@ -12,7 +13,7 @@ namespace Api_EFExample.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-
+    [Authorize]
     public class PersonController : ControllerBase
     {
         private readonly IPersonService _personService;

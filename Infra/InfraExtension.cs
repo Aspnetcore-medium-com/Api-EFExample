@@ -1,4 +1,5 @@
 ﻿using Core.Domain.RepositoryContracts;
+using Infra.Jwt;
 using Infra.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,8 @@ namespace Infra
             services.AddDbContext<ApplicationDBContext>(options => options.UseSqlServer(configuration.GetConnectionString("Default")));
             services.AddTransient<ICountryRepository,CountryRepository>();
             services.AddTransient<IPersonRepository, PersonRepository>();
+            services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            services.AddTransient<IJwtTokenGenerator, JwtTokenGenerator>();
             return services;
         }
     }
