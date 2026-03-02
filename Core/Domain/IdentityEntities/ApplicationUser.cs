@@ -11,5 +11,9 @@ namespace Core.Domain.IdentityEntities
     public class ApplicationUser: IdentityUser<Guid>
     {
         public string PersonName { get; set; } = default!;
+
+        public string RefreshToken { get; set; } = default!;
+
+        public DateTime RefreshTokenValidity { get; set; }
     }
 }

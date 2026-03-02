@@ -15,7 +15,9 @@ namespace Core.Mapper.Auth
         {
             CreateMap<ApplicationUser, SignInResponse>()
                 .ForMember(dest => dest.PersonName, opt => opt.MapFrom(src => src.PersonName != null ? src.PersonName : null))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email != null ? src.Email : null));
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email != null ? src.Email : null))
+                .ForMember(dest => dest.RefreshToken, opt => opt.MapFrom(src => src.RefreshToken))
+                .ForMember(dest => dest.RefreshTokenExpiry, opt => opt.MapFrom(src => src.RefreshTokenValidity));
         }
     }
 }

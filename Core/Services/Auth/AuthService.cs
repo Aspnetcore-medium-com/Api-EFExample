@@ -59,15 +59,22 @@ namespace Core.Services.Auth
         public async Task<SignInResponse?> SignInWithPassword(LoginRequest loginRequest)
         {
             var user = await _userManager.FindByEmailAsync(loginRequest.Email);
-            if (user != null)
-            {
-                var token = _jwtTokenGenerator.GenerateToken(user);
-                var response = _mapper.Map<SignInResponse>(user);
-                response.Token = token.Token;
-                response.Expiry = token.ExpiryTime;
-                return response;
-            }
-            return null;
+            if (user == null)
+                return null;
+
+            var result = await _signinManager.CheckPasswordSignInAsync(user, loginRequest.Password, lockoutOnFailure: false);
+            if (!result.Succeeded)
+                return null;
+            
+            var token = _jwtTokenGenerator.GenerateToken(user);
+            user.RefreshToken = token.RefreshToken;
+            user.RefreshTokenValidity = token.RefreshTokenExpiry;
+            await _userManager.UpdateAsync(user);
+
+            var response = _mapper.Map<SignInResponse>(user);
+            response.Token = token.Token;
+            response.Expiry = token.ExpiryTime;
+            return response;
         }
 
         public async Task SignOut()

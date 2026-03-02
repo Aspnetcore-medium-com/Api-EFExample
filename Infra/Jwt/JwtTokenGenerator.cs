@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -55,8 +56,18 @@ namespace Infra.Jwt
             return new TokenResult()
             {
                 ExpiryTime = expiry,
-                Token = handler.WriteToken(token)
+                Token = handler.WriteToken(token),
+                RefreshToken = GenerateRefreshToken(),
+                RefreshTokenExpiry = DateTime.UtcNow.AddMinutes(_jwtOptions.RefreshTokenExpirationInMinutes)
             };
+        }
+
+        public string GenerateRefreshToken()
+        {
+            byte[] bytes = new byte[64];
+            var randomNumber = RandomNumberGenerator.Create();
+            randomNumber.GetBytes(bytes);
+            return Convert.ToBase64String(bytes);
         }
     }
 }

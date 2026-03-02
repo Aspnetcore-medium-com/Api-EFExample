@@ -14,6 +14,10 @@ namespace Core.DTO
         public string Token { get; set; } = string.Empty;
 
         public DateTime Expiry {  get; set; } = DateTime.MinValue;
+
+        public string RefreshToken { get; set; } = string.Empty ;
+
+        public DateTime RefreshTokenExpiry {  get; set; } = DateTime.MinValue; 
         
     }
 }
