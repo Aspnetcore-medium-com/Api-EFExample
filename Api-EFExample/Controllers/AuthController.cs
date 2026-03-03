@@ -71,5 +71,14 @@ namespace Api_EFExample.Controllers
             await _authService.SignOut();
             return NoContent();
         }
+
+        [HttpPost("generate-access-token")]
+        public async Task<ActionResult<SignInResponse>> ReGenerateAccessToken(TokensRequest tokenRequest, CancellationToken cancellationToken = default)
+        {
+            SignInResponse? signInResponse = await _authService.RenewAccessToken(tokenRequest);
+            if (signInResponse == null) { return BadRequest("Invalid Access token"); }
+            return Ok(signInResponse);
+
+        }
     }
 }

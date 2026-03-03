@@ -29,5 +29,7 @@ namespace Core.ServiceContracts.Auth
         Task<SignInResponse?> SignInWithPassword(LoginRequest loginRequest);
 
         Task SignOut();
+
+        Task<SignInResponse?> RenewAccessToken(TokensRequest tokensRequest);
     }
 }

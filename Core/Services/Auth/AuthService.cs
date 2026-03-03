@@ -1,16 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AutoMapper;
+﻿using AutoMapper;
 using Core.Domain.IdentityEntities;
 using Core.Domain.RepositoryContracts;
 using Core.DTO;
 using Core.ServiceContracts.Auth;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.JsonWebTokens;
+using Microsoft.IdentityModel.Tokens;
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
+using System.Threading.Tasks;
 namespace Core.Services.Auth
 {
     public class AuthService : IAuthService
@@ -19,12 +23,14 @@ namespace Core.Services.Auth
         private readonly SignInManager<ApplicationUser> _signinManager;
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IMapper _mapper;
-        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, SignInManager<ApplicationUser> signinManager, IJwtTokenGenerator jwtTokenGenerator)
+        private readonly IConfiguration _config;
+        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, SignInManager<ApplicationUser> signinManager, IJwtTokenGenerator jwtTokenGenerator ,IConfiguration configuration)
         {
             _userManager = userManager;
             _mapper = mapper;
             _signinManager = signinManager;
             _jwtTokenGenerator = jwtTokenGenerator;
+            _config = configuration;
         }
         public async Task<SignInResponse?> RegisterUser(RegisterRequest registerDTO)
         {
@@ -34,6 +40,12 @@ namespace Core.Services.Auth
             {
                 return null;
             }
+            SignInResponse response = GenerateAccessToken(user);
+            return response;
+        }
+
+        private SignInResponse GenerateAccessToken(ApplicationUser user)
+        {
             var token = _jwtTokenGenerator.GenerateToken(user);
             var response = _mapper.Map<SignInResponse>(user);
             response.Token = token.Token;
@@ -80,6 +92,50 @@ namespace Core.Services.Auth
         public async Task SignOut()
         {
             await _signinManager.SignOutAsync();
+        }
+
+        public async Task<SignInResponse?> RenewAccessToken(TokensRequest tokensRequest)
+        {
+            ClaimsPrincipal claimsPrincipal = GetClientsPrincipalFromAccessToken(tokensRequest);
+
+            if (claimsPrincipal == null)
+                return null;
+            string? email = claimsPrincipal.FindFirstValue("Email");
+            if (email == null) return null;
+            ApplicationUser? applicationUser = await _userManager.FindByEmailAsync(email);
+            if (applicationUser == null || applicationUser.RefreshToken != tokensRequest.RefreshToken || applicationUser.RefreshTokenValidity <= DateTime.UtcNow)
+            {
+                return null;
+            }
+            SignInResponse response = GenerateAccessToken(applicationUser);
+            return response;
+
+        }
+
+        public  ClaimsPrincipal GetClientsPrincipalFromAccessToken(TokensRequest tokensRequest)
+        {
+            var accessToken = tokensRequest.AccessToken;
+
+            var tokenValidationParams = new TokenValidationParameters()
+            {
+                ValidateIssuer = true,
+                ValidIssuer = _config["Jwt:Issuer"],
+                ValidateAudience = true,
+                ValidAudience = _config["Jwt:Audience"],
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey( UTF8Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]) ),
+                ValidateLifetime = false
+            };
+
+            JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
+
+            ClaimsPrincipal claimsPrincipal =  jwtSecurityTokenHandler.ValidateToken(accessToken, tokenValidationParams, out SecurityToken securityToken);
+
+            if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase)) {
+                throw new SecurityTokenException("invalid token");
+            }
+
+            return claimsPrincipal;
         }
 
     }
