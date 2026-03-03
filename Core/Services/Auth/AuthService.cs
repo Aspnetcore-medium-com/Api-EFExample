@@ -24,7 +24,7 @@ namespace Core.Services.Auth
         private readonly IJwtTokenGenerator _jwtTokenGenerator;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
-        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, SignInManager<ApplicationUser> signinManager, IJwtTokenGenerator jwtTokenGenerator ,IConfiguration configuration)
+        public AuthService(UserManager<ApplicationUser> userManager, IMapper mapper, SignInManager<ApplicationUser> signinManager, IJwtTokenGenerator jwtTokenGenerator, IConfiguration configuration)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -77,7 +77,7 @@ namespace Core.Services.Auth
             var result = await _signinManager.CheckPasswordSignInAsync(user, loginRequest.Password, lockoutOnFailure: false);
             if (!result.Succeeded)
                 return null;
-            
+
             var token = _jwtTokenGenerator.GenerateToken(user);
             user.RefreshToken = token.RefreshToken;
             user.RefreshTokenValidity = token.RefreshTokenExpiry;
@@ -94,48 +94,114 @@ namespace Core.Services.Auth
             await _signinManager.SignOutAsync();
         }
 
+        // This method is used to generate a NEW access token using
+        // an existing (possibly expired) access token + refresh token.
         public async Task<SignInResponse?> RenewAccessToken(TokensRequest tokensRequest)
         {
+            // Step 1: Extract the ClaimsPrincipal from the expired access token.
+            // We ignore token lifetime validation because access token may already be expired.
             ClaimsPrincipal claimsPrincipal = GetClientsPrincipalFromAccessToken(tokensRequest);
 
+            // If token validation failed, return null (invalid request)
             if (claimsPrincipal == null)
                 return null;
-            string? email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
-            if (email == null) return null;
-            ApplicationUser? applicationUser = await _userManager.FindByEmailAsync(email);
-            if (applicationUser == null || applicationUser.RefreshToken != tokensRequest.RefreshToken || applicationUser.RefreshTokenValidity <= DateTime.UtcNow)
-            {
-                return null;
-            }
-            SignInResponse response = GenerateAccessToken(applicationUser);
-            return response;
 
+            // Step 2: Extract email claim from token
+            string? email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
+
+            // If email claim is missing, token is invalid
+            if (email == null)
+                return null;
+
+            // Step 3: Find the user from database using email
+            ApplicationUser? applicationUser = await _userManager.FindByEmailAsync(email);
+
+            // Step 4: Validate refresh token
+            // Conditions checked:
+            // 1. User must exist
+            // 2. Stored refresh token must match the incoming refresh token
+            // 3. Refresh token must NOT be expired
+            if (applicationUser == null ||
+                applicationUser.RefreshToken != tokensRequest.RefreshToken ||
+                applicationUser.RefreshTokenValidity <= DateTime.UtcNow)
+            {
+                return null; // Refresh token invalid or expired
+            }
+
+            // Step 5: Generate a new access token (and optionally new refresh token)
+            SignInResponse response = GenerateAccessToken(applicationUser);
+
+            return response;
         }
 
-        public  ClaimsPrincipal GetClientsPrincipalFromAccessToken(TokensRequest tokensRequest)
+        // This method extracts the ClaimsPrincipal from the given access token.
+        // It is mainly used during refresh token flow.
+        // NOTE: Lifetime validation is intentionally disabled because
+        // the access token may already be expired.
+        public ClaimsPrincipal GetClientsPrincipalFromAccessToken(TokensRequest tokensRequest)
         {
+            // Extract access token from request
             var accessToken = tokensRequest.AccessToken;
 
+            // Basic guard clause (recommended in production)
+            if (string.IsNullOrWhiteSpace(accessToken))
+                throw new SecurityTokenException("Access token is missing.");
+
+            // Configure how the token should be validated
             var tokenValidationParams = new TokenValidationParameters()
             {
+                // Validate that token was issued by expected issuer
                 ValidateIssuer = true,
                 ValidIssuer = _config["Jwt:Issuer"],
+
+                // Validate that token is meant for expected audience
                 ValidateAudience = true,
                 ValidAudience = _config["Jwt:Audience"],
+
+                // Ensure the token was signed with the correct secret key
                 ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey( UTF8Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"]) ),
+                IssuerSigningKey = new SymmetricSecurityKey(
+                    UTF8Encoding.UTF8.GetBytes(_config["Jwt:SecretKey"])
+                ),
+
+                // IMPORTANT:
+                // We disable lifetime validation because this method
+                // is used in refresh token flow.
+                // The token may already be expired.
                 ValidateLifetime = false
             };
 
+            // Handler responsible for validating and reading JWT tokens
             JwtSecurityTokenHandler jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
 
-            ClaimsPrincipal claimsPrincipal =  jwtSecurityTokenHandler.ValidateToken(accessToken, tokenValidationParams, out SecurityToken securityToken);
+            try
+            {
+                // Validate token signature and extract claims
+                ClaimsPrincipal claimsPrincipal = jwtSecurityTokenHandler.ValidateToken(
+                    accessToken,
+                    tokenValidationParams,
+                    out SecurityToken securityToken
+                );
 
-            if (securityToken is not JwtSecurityToken jwtSecurityToken || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase)) {
-                throw new SecurityTokenException("invalid token");
+                // Extra security validation:
+                // Ensure token is actually JWT and uses expected algorithm (HmacSha256)
+                if (securityToken is not JwtSecurityToken jwtSecurityToken ||
+                    !jwtSecurityToken.Header.Alg.Equals(
+                        SecurityAlgorithms.HmacSha256,
+                        StringComparison.InvariantCultureIgnoreCase))
+                {
+                    throw new SecurityTokenException("Invalid token algorithm.");
+                }
+
+                return claimsPrincipal;
             }
+            catch (Exception)
+            {
+                // Optional: log error here using Serilog or ILogger
+                // _logger.LogError(ex, "Invalid access token during refresh");
 
-            return claimsPrincipal;
+                throw new SecurityTokenException("Invalid access token.");
+            }
         }
 
     }
