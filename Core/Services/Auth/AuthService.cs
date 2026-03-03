@@ -100,7 +100,7 @@ namespace Core.Services.Auth
 
             if (claimsPrincipal == null)
                 return null;
-            string? email = claimsPrincipal.FindFirstValue("Email");
+            string? email = claimsPrincipal.FindFirst(ClaimTypes.Email)?.Value;
             if (email == null) return null;
             ApplicationUser? applicationUser = await _userManager.FindByEmailAsync(email);
             if (applicationUser == null || applicationUser.RefreshToken != tokensRequest.RefreshToken || applicationUser.RefreshTokenValidity <= DateTime.UtcNow)
