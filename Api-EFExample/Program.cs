@@ -19,6 +19,7 @@ using Services;
 using Services.Seeders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -74,6 +75,15 @@ builder.Services.AddAuthentication( options => {
             ClockSkew = TimeSpan.Zero // Recommended (removes default 5 min tolerance)
         };
     });
+
+// enable authentication for all controllers
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                                    .RequireAuthenticatedUser().Build();
+});
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

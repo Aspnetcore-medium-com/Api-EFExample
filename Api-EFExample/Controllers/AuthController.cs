@@ -1,6 +1,7 @@
 ﻿using Api_EFExample.Filters.Actions;
 using Core.DTO;
 using Core.ServiceContracts.Auth;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ServiceContracts.DTO;
@@ -9,6 +10,7 @@ namespace Api_EFExample.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
