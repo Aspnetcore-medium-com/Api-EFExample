@@ -19,6 +19,17 @@ namespace Api_EFExample.Controllers
         {
             _authService = authService;
         }
+        /// <summary>
+        /// Registers a new user with the provided registration details.
+        /// </summary>
+        /// <remarks>The request body must contain valid registration data as defined by <see
+        /// cref="RegisterRequest"/>.  If the input data fails validation, a 400 Bad Request response is returned with
+        /// validation details.</remarks>
+        /// <param name="registerDTO">An object containing the user's registration information. Must not be <c>null</c> and must satisfy all
+        /// validation requirements.</param>
+        /// <returns>﻿An <see cref="IActionResult"/> indicating the result of the registration operation.  Returns <see
+        /// cref="OkObjectResult"/> with the registration result if successful; otherwise, returns <see
+        /// cref="BadRequestObjectResult"/> if the registration fails or the input is invalid.</returns>
         [HttpPost("register")]
         [ServiceFilter(typeof(ValidationFilter<RegisterRequest>))]
         public async Task<IActionResult> Register(RegisterRequest registerDTO)

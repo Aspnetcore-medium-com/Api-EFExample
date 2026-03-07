@@ -1,25 +1,23 @@
-using Api_EFExample.Filters.Actions;
-using Api_EFExample.Middleware;
+﻿using Api_EFExample.Filters.Actions;
 using Api_EFExample.Options;
-using AutoMapper;
 using Core;
 using Core.Domain.IdentityEntities;
-using Core.Mapper;
 using Core.Validator;
 using FluentValidation;
 using Infra;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 using Services;
 using Services.Seeders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Asp.Versioning;
+using Microsoft.OpenApi;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -35,10 +33,27 @@ builder.Services.AddScoped(typeof(ValidationFilter<>));
 builder.Services.AddControllers(options =>
 {
     options.Filters.AddService<ResponseHeaderFilter>();
+    options.Filters.Add(new ProducesAttribute("application/json"));
+    options.Filters.Add(new ConsumesAttribute("application/json"));
 });
 builder.Services.AddValidatorsFromAssemblyContaining<PersonAddRequestValidator>();
 builder.Services.AddCore().AddInfra(builder.Configuration);
 builder.Services.AddHttpLogging(options =>{});
+// api versioning
+builder.Services.AddApiVersioning( config  =>
+{
+    //config.ApiVersionReader = new UrlSegmentApiVersionReader();
+    config.ApiVersionReader = new QueryStringApiVersionReader("api-version");
+    config.DefaultApiVersion = new ApiVersion(1, 0);
+    config.AssumeDefaultVersionWhenUnspecified = true;
+    //"api-version"
+
+}).AddMvc()        
+.AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+});
 
 builder.Host.UseSerilog((context, services, configuration) =>
 {
@@ -56,6 +71,23 @@ builder.Services.AddIdentity<ApplicationUser, ApplicationUserRole>( options =>
     .AddDefaultTokenProviders()
     .AddUserStore<UserStore<ApplicationUser, ApplicationUserRole, ApplicationDBContext, Guid>>()
     .AddRoleStore<RoleStore<ApplicationUserRole, ApplicationDBContext, Guid>>();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "app.xml"));
+    options.SwaggerDoc("v1", new OpenApiInfo   // ← No longer under .Models
+    {
+        Version = "v1",
+        Title = "Persons API v1",
+        Description = "API for managing persons (version 1)"
+    });
+    options.SwaggerDoc("v2", new OpenApiInfo   // ← No longer under .Models
+    {
+        Version = "v2",
+        Title = "Persons API v2",
+        Description = "API for managing persons (version 2)"
+    });
+});
 
 // jwt
 builder.Services.AddAuthentication( options => {
@@ -95,6 +127,12 @@ if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
+app.UseSwagger();
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Persons API v1");
+    options.SwaggerEndpoint("/swagger/v2/swagger.json", "Persons API v2");
+});
 app.UseHttpLogging();
 app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();

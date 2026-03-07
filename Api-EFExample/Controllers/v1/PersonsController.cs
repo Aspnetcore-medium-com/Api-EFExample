@@ -1,4 +1,5 @@
 ﻿using Api_EFExample.Filters.Actions;
+using Asp.Versioning;
 using Core.Validator;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -9,17 +10,21 @@ using ServiceContracts.DTO;
 using Services.Entities;
 using System.ComponentModel.DataAnnotations;
 
-namespace Api_EFExample.Controllers
+namespace Api_EFExample.Controllers.v1
 {
+
+    //[Route("api/v1/[controller]")]
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class PersonController : ControllerBase
+    [ApiVersion("1.0")]
+
+    public class PersonsController : ControllerBase
     {
         private readonly IPersonService _personService;
         private readonly IValidator<PersonAddRequest> _validator;
-        private readonly ILogger<PersonController> _logger;
-        public PersonController(IPersonService personService,IValidator<PersonAddRequest> validator, ILogger<PersonController> logger)
+        private readonly ILogger<PersonsController> _logger;
+        public PersonsController(IPersonService personService,IValidator<PersonAddRequest> validator, ILogger<PersonsController> logger)
         {
             _personService = personService;
             _validator = validator;
@@ -27,6 +32,7 @@ namespace Api_EFExample.Controllers
         }
         [HttpGet]
         //[TypeFilter(typeof(ResponseHeaderFilter))]
+        [MapToApiVersion("1.0")]
         public async Task<ActionResult<IEnumerable<PersonResponse>>> GetAll(CancellationToken cancellationToken = default)
         {
            var persons = await _personService.GetAllPersons(cancellationToken);

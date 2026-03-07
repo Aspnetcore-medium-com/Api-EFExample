@@ -1,4 +1,4 @@
-﻿using Api_EFExample.Controllers;
+﻿using Api_EFExample.Controllers.v1;
 using AutoFixture;
 using AutoFixture.AutoMoq;
 using Castle.Core.Logging;
@@ -24,13 +24,13 @@ namespace CRUDTest.Controllers
     {
         private readonly Mock<IPersonService> _personServiceMock;
         private readonly Mock<IValidator<PersonAddRequest>> _validatorMock;
-        private readonly Mock<ILogger<PersonController>> _loggerMock;
-        private readonly PersonController _sut ;
+        private readonly Mock<ILogger<PersonsController>> _loggerMock;
+        private readonly PersonsController _sut ;
         public PersonControllerTests() {
             _personServiceMock = new Mock<IPersonService>();
             _validatorMock = new Mock<IValidator<PersonAddRequest>>();
-            _loggerMock = new Mock<ILogger<PersonController>>();
-            _sut = new PersonController(_personServiceMock.Object,_validatorMock.Object,_loggerMock.Object);
+            _loggerMock = new Mock<ILogger<PersonsController>>();
+            _sut = new PersonsController(_personServiceMock.Object,_validatorMock.Object,_loggerMock.Object);
         }
 
       
