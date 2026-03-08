@@ -119,8 +119,18 @@ builder.Services.AddAuthorization(options =>
 // enable cors
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policyBuilder => policyBuilder.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()!));
+    options.AddDefaultPolicy(policyBuilder => policyBuilder.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()!)
+            .WithHeaders("Authorization","origin","accept","content-type")
+            .WithMethods("GET","POST","PUT","DELETE")
+    );
+
+    //custom policy
+    options.AddPolicy("ReactClient", policyBuilder => policyBuilder.WithOrigins(builder.Configuration.GetSection("AllowedOrigins").Get<string[]>()!)
+            .WithHeaders("Authorization", "origin", "accept", "content-type")
+            .WithMethods("GET", "POST", "PUT", "DELETE"));
 });
+
+
 
 
 var app = builder.Build();
